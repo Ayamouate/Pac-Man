@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any
+from engine.player import Player
 
 
 Level = Mapping[str, Any]
@@ -16,11 +17,6 @@ class MazeViewer:
     PADDING = 24
 
     BACKGROUND = (8, 10, 24)
-    FLOOR = (15, 20, 42)
-    WALL = (52, 145, 255)
-    PATH = (80, 220, 220)
-    ENTRY = (255, 220, 40)
-    EXIT = (255, 85, 100)
     TEXT = (235, 240, 255)
     MUTED_TEXT = (155, 165, 195)
 
@@ -34,7 +30,15 @@ class MazeViewer:
         self._levels = levels
         self._mazes = mazes
         self._level_index = 0
-        self._show_path = False
+        maze = self._mazes[self._level_index]
+        self.player = Player((
+            len(maze.maze[0]) // 2,
+            len(maze.maze) // 2
+        ))
+        self.player_image: Any = None
+        self.background: Any = None
+        self.wall_h: Any = None
+        self.wall_v: Any = None
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -51,11 +55,33 @@ class MazeViewer:
 
         pygame.init()
         screen = pygame.display.set_mode(self.WINDOW_SIZE)
+
+        self.background = pygame.image.load(
+            "assets/Bg.jpeg"
+        ).convert()
+
+        self.background = pygame.transform.scale(
+            self.background, self.WINDOW_SIZE
+        )
+        self.wall_h = pygame.image.load(
+            "assets/wall_h.png"
+        ).convert_alpha()
+        self.wall_v = pygame.image.load(
+            "assets/wall_v.png"
+        ).convert_alpha()
+
+        try:
+            self.player_image = pygame.image.load(
+                "assets/player.png"
+            ).convert_alpha()
+        except (pygame.error, FileNotFoundError):
+            print("Player image not found. Using yellow circle.")
         pygame.display.set_caption("Pac-Man Maze Viewer")
         title_font = pygame.font.Font(None, 32)
         info_font = pygame.font.Font(None, 24)
         clock = pygame.time.Clock()
-
+        last_move = pygame.time.get_ticks()
+        move_delay = 180
         running = True
         try:
             while running:
@@ -64,6 +90,12 @@ class MazeViewer:
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         running = self._handle_key(pygame, event.key)
+                now = pygame.time.get_ticks()
+
+                if now - last_move >= move_delay:
+                    maze = self._mazes[self._level_index]
+                    self.player.move(maze)
+                    last_move = now
 
                 self._draw(pygame, screen, title_font, info_font)
                 pygame.display.flip()
@@ -72,20 +104,53 @@ class MazeViewer:
             pygame.quit()
 
     def _handle_key(self, pygame: Any, key: int) -> bool:
+
+        moves = {
+            pygame.K_UP: "up",
+            pygame.K_w: "up",
+            pygame.K_DOWN: "down",
+            pygame.K_s: "down",
+            pygame.K_LEFT: "left",
+            pygame.K_a: "left",
+            pygame.K_RIGHT: "right",
+            pygame.K_d: "right",
+        }
         if key in (pygame.K_ESCAPE, pygame.K_q):
             return False
-        if key in (pygame.K_RIGHT, pygame.K_d, pygame.K_DOWN, pygame.K_s):
+        elif key == pygame.K_n:
             self._level_index = (self._level_index + 1) % len(self._mazes)
-        elif key in (pygame.K_LEFT, pygame.K_a, pygame.K_UP, pygame.K_w):
+            self._reset_player()
+            return True
+        elif key == pygame.K_b:
             self._level_index = (self._level_index - 1) % len(self._mazes)
-        elif key == pygame.K_p:
-            self._show_path = not self._show_path
+            self._reset_player()
+            return True
+        if key not in moves:
+            return True
+
+        self.player.direction = moves[key]
         return True
+
+    def _reset_player(self) -> None:
+        """Reset the player to the center of the selected maze."""
+
+        maze = self._mazes[self._level_index]
+        self.player.start_position = (
+            len(maze.maze[0]) // 2,
+            len(maze.maze) // 2,
+        )
+        self.player.current_pos = self.player.start_position
+        self.player.direction = ""
 
     def _draw(
         self, pygame: Any, screen: Any, title_font: Any, info_font: Any
     ) -> None:
-        screen.fill(self.BACKGROUND)
+        screen.blit(self.background, (0, 0))
+        header = pygame.Surface(
+            (self.WINDOW_SIZE[0], self.HEADER_HEIGHT), pygame.SRCALPHA
+        )
+        header.fill((*self.BACKGROUND, 180))
+        screen.blit(header, (0, 0))
         maze = self._mazes[self._level_index]
         level = self._levels[self._level_index]
         width = level["width"]
@@ -97,11 +162,8 @@ class MazeViewer:
             f"{width}x{height}"
         )
         self._draw_text(pygame, screen, title_font, title, self.TEXT, 24, 16)
-        path_length = len(maze.shortest_path or "")
-        path_state = "on" if self._show_path else "off"
         details = (
-            f"Shortest path: {path_length} steps   |   Path: {path_state}   "
-            "|   Left/Right: level   P: path   Esc/Q: quit"
+            "Arrows/WASD: move   N/B: level   Esc/Q: quit"
         )
         self._draw_text(
             pygame, screen, info_font, details, self.MUTED_TEXT, 24, 52
@@ -110,13 +172,9 @@ class MazeViewer:
         self._draw_cells(
             pygame, screen, maze, cell_size, origin_x, origin_y, width, height
         )
-        if self._show_path:
-            self._draw_path(
-                pygame, screen, maze, cell_size, origin_x, origin_y
-            )
-        self._draw_endpoints(
-            pygame, screen, maze, cell_size, origin_x, origin_y
-        )
+        self._draw_player(pygame,
+                          screen, cell_size, origin_x, origin_y
+                          )
 
     def _layout(self, width: int, height: int) -> tuple[int, int, int]:
         window_width, window_height = self.WINDOW_SIZE
@@ -150,8 +208,11 @@ class MazeViewer:
             for x in range(width):
                 left = origin_x + x * cell_size
                 top = origin_y + y * cell_size
-                cell = pygame.Rect(left, top, cell_size, cell_size)
-                pygame.draw.rect(screen, self.FLOOR, cell)
+
+                floor_surface = pygame.Surface(
+                    (cell_size, cell_size), pygame.SRCALPHA)
+                floor_surface.fill((230, 210, 180, 180))
+                screen.blit(floor_surface, (left, top))
                 walls = maze.maze[y][x]
                 if walls & 1:
                     self._draw_wall(
@@ -189,64 +250,17 @@ class MazeViewer:
         end_x: int,
         end_y: int,
     ) -> None:
-        pygame.draw.line(
-            screen, self.WALL, (start_x, start_y), (end_x, end_y), 2
-        )
 
-    def _draw_path(
-        self,
-        pygame: Any,
-        screen: Any,
-        maze: Any,
-        cell_size: int,
-        origin_x: int,
-        origin_y: int,
-    ) -> None:
-        x, y = maze.maze_entry
-        cells = [(x, y)]
-        moves = {"N": (0, -1), "E": (1, 0), "S": (0, 1), "W": (-1, 0)}
-        for move in maze.shortest_path or "":
-            dx, dy = moves[move]
-            x += dx
-            y += dy
-            cells.append((x, y))
-
-        points = [
-            (
-                origin_x + cell_x * cell_size + cell_size // 2,
-                origin_y + cell_y * cell_size + cell_size // 2,
+        if start_y == end_y:
+            wall = pygame.transform.scale(
+                self.wall_h, (end_x - start_x, 7)
             )
-            for cell_x, cell_y in cells
-        ]
-        if len(points) > 1:
-            pygame.draw.lines(
-                screen, self.PATH, False, points, max(2, cell_size // 5)
+            screen.blit(wall, (min(start_x, end_x), start_y))
+        else:
+            wall = pygame.transform.scale(
+                self.wall_v, (7, end_y - start_y)
             )
-        for point in points:
-            pygame.draw.circle(
-                screen, self.PATH, point, max(2, cell_size // 7)
-            )
-
-    def _draw_endpoints(
-        self,
-        pygame: Any,
-        screen: Any,
-        maze: Any,
-        cell_size: int,
-        origin_x: int,
-        origin_y: int,
-    ) -> None:
-        radius = max(4, cell_size // 3)
-        for point, colour in (
-            (maze.maze_entry, self.ENTRY),
-            (maze.maze_exit, self.EXIT),
-        ):
-            x, y = point
-            center = (
-                origin_x + x * cell_size + cell_size // 2,
-                origin_y + y * cell_size + cell_size // 2,
-            )
-            pygame.draw.circle(screen, colour, center, radius)
+            screen.blit(wall, (start_x, min(start_y, end_y)))
 
     def _draw_text(
         self,
@@ -259,3 +273,35 @@ class MazeViewer:
         y: int,
     ) -> None:
         screen.blit(font.render(message, True, colour), (x, y))
+
+    def _draw_player(
+        self,
+        pygame: Any,
+        screen: Any,
+        cell_size: int,
+        origin_x: int,
+        origin_y: int,
+    ) -> None:
+        x, y = self.player.current_pos
+
+        center_x = origin_x + x * cell_size + cell_size // 2
+        center_y = origin_y + y * cell_size + cell_size // 2
+
+        radius = max(3, cell_size // 3)
+
+        if self.player_image is not None:
+            size = int(cell_size * 0.8)
+            image = pygame.transform.scale(
+                self.player_image, (size, size)
+            )
+            rect = image.get_rect(
+                center=(round(center_x), round(center_y))
+            )
+            screen.blit(image, rect)
+        else:
+            pygame.draw.circle(
+                screen,
+                (255, 220, 0),
+                (round(center_x), round(center_y)),
+                radius,
+            )

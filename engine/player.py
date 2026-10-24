@@ -8,9 +8,15 @@ class Player:
                   "down": (0, 1), "left": (-1, 0)}
 
     def __init__(
-        self, start_position: tuple[int, int], lives: int = 3
+        self,
+        start_position: tuple[int, int],
+        lives: int,
+        super_pacgums_points: int,
+        pacgums_points: int,
     ) -> None:
         self.start_position = start_position
+        self.super_pacgums_points = super_pacgums_points
+        self.pacgums_points = pacgums_points
         self.lives = lives
         self.score = 0
         self.direction = ""
@@ -24,7 +30,7 @@ class Player:
         if move:
             self.current_pos = (
                 self.current_pos[0] + self.directions[direction][0],
-                self.current_pos[1] + self.directions[direction][1]
+                self.current_pos[1] + self.directions[direction][1],
             )
             self.direction = direction
             return True
@@ -33,11 +39,17 @@ class Player:
     def move(self, maze: Any) -> None:
         self.can_move(self.direction, maze)
 
-    def add_score(self, points: int) -> None:
-        self.score += points
+    def add_score(self) -> None:
+        self.score += self.pacgums_points
+
+    def add_super_score(self) -> None:
+        self.score += self.super_pacgums_points
 
     def is_alive(self) -> bool:
-        return self.lives > 0
+        if self.lives == 0:
+            return False
+        else:
+            return True
 
     def lose_life(self) -> int:
         if self.lives > 0:

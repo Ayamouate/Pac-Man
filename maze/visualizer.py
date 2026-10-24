@@ -1,9 +1,13 @@
 """Pygame display for the generated maze levels."""
 
 from __future__ import annotations
+import pygame
+from engine.pacgums import Pacgums
+from engine.interactions import InteractionManager
 from collections.abc import Mapping, Sequence
 from typing import Any
 from engine.player import Player
+from maze.maze_loader import Loader
 
 
 Level = Mapping[str, Any]
@@ -12,15 +16,17 @@ Level = Mapping[str, Any]
 class MazeViewer:
     """Display configured mazes one level at a time."""
 
-    WINDOW_SIZE = (1100, 800)
+    WINDOW_SIZE = (1100, 900)
     HEADER_HEIGHT = 92
     PADDING = 24
 
     BACKGROUND = (8, 10, 24)
-    TEXT = (235, 240, 255)
+    WALL = (107, 66, 38)
+    TEXT = (55, 32, 20)
     MUTED_TEXT = (155, 165, 195)
 
-    def __init__(self, levels: Sequence[Level], mazes: Sequence[Any]) -> None:
+    def __init__(self, data: Any, mazes: Sequence[Any]) -> None:
+        levels = data["levels"]
         if len(levels) != len(mazes):
             raise ValueError(
                 "Each configured level must have a generated maze"
@@ -30,15 +36,32 @@ class MazeViewer:
         self._levels = levels
         self._mazes = mazes
         self._level_index = 0
-        maze = self._mazes[self._level_index]
-        self.player = Player((
-            len(maze.maze[0]) // 2,
-            len(maze.maze) // 2
-        ))
+        self.maze = self._mazes[self._level_index]
+        self.player = Player(
+            (
+                len(self.maze.maze[0]) // 2,
+                len(self.maze.maze) // 2,
+            ),
+            data["lives"],
+            data["points_per_super_pacgum"],
+            data["points_per_pacgum"],
+        )
+        self.pacgums = Pacgums(self.maze, self.player)
+        self.super_pacgums = self.pacgums.super_pacgums
+        self.loader = Loader(self._mazes[0])
+        self.pacgums_image: Any = None
         self.player_image: Any = None
+        self.super_pacgums_image: Any = None
         self.background: Any = None
         self.wall_h: Any = None
         self.wall_v: Any = None
+        self.blue_ghost: Any = None
+        self.pink_ghost: Any = None
+        self.red_ghost: Any = None
+        self.orange_ghost: Any = None
+        self.hud: Any = None
+        self.life_icon: Any = None
+        self.start_time = pygame.time.get_ticks()
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -69,18 +92,42 @@ class MazeViewer:
         self.wall_v = pygame.image.load(
             "assets/wall_v.png"
         ).convert_alpha()
-
+        self.red_ghost = pygame.image.load(
+            "assets/red.png"
+        ).convert_alpha()
+        self.blue_ghost = pygame.image.load(
+            "assets/bleu.png"
+        ).convert_alpha()
+        self.pink_ghost = pygame.image.load(
+            "assets/pink.png"
+        ).convert_alpha()
+        self.orange_ghost = pygame.image.load(
+            "assets/orange.png"
+        ).convert_alpha()
+        self.hud = pygame.image.load(
+            "assets/hud.png"
+        ).convert_alpha()
+        self.life_icon = pygame.image.load(
+            "assets/life_icon.png"
+        ).convert_alpha()
         try:
             self.player_image = pygame.image.load(
                 "assets/player.png"
             ).convert_alpha()
         except (pygame.error, FileNotFoundError):
             print("Player image not found. Using yellow circle.")
+        self.pacgums_image = pygame.image.load(
+            "assets/pacgum.png"
+        ).convert_alpha()
+        self.super_pacgums_image = pygame.image.load(
+            "assets/super_pacgum.png"
+        ).convert_alpha()
         pygame.display.set_caption("Pac-Man Maze Viewer")
         title_font = pygame.font.Font(None, 32)
         info_font = pygame.font.Font(None, 24)
         clock = pygame.time.Clock()
         last_move = pygame.time.get_ticks()
+
         move_delay = 180
         running = True
         try:
@@ -95,6 +142,11 @@ class MazeViewer:
                 if now - last_move >= move_delay:
                     maze = self._mazes[self._level_index]
                     self.player.move(maze)
+                    InteractionManager(
+                        self.player,
+                        self.pacgums.pacgums,
+                        self.super_pacgums,
+                    ).check_pacgum()
                     last_move = now
 
                 self._draw(pygame, screen, title_font, info_font)
@@ -118,63 +170,54 @@ class MazeViewer:
         if key in (pygame.K_ESCAPE, pygame.K_q):
             return False
         elif key == pygame.K_n:
-            self._level_index = (self._level_index + 1) % len(self._mazes)
-            self._reset_player()
+            index = (self._level_index + 1) % len(self._mazes)
+            self._change_level(index)
             return True
-        elif key == pygame.K_b:
-            self._level_index = (self._level_index - 1) % len(self._mazes)
-            self._reset_player()
+        elif key == pygame.K_p:
+            index = (self._level_index - 1) % len(self._mazes)
+            self._change_level(index)
             return True
+
         if key not in moves:
             return True
 
-        self.player.direction = moves[key]
+        if key in moves:
+            self.player.direction = moves[key]
+            return True
+
         return True
-
-    def _reset_player(self) -> None:
-        """Reset the player to the center of the selected maze."""
-
-        maze = self._mazes[self._level_index]
-        self.player.start_position = (
-            len(maze.maze[0]) // 2,
-            len(maze.maze) // 2,
-        )
-        self.player.current_pos = self.player.start_position
-        self.player.direction = ""
 
     def _draw(
         self, pygame: Any, screen: Any, title_font: Any, info_font: Any
     ) -> None:
         screen.blit(self.background, (0, 0))
-        header = pygame.Surface(
-            (self.WINDOW_SIZE[0], self.HEADER_HEIGHT), pygame.SRCALPHA
-        )
-        header.fill((*self.BACKGROUND, 180))
-        screen.blit(header, (0, 0))
         maze = self._mazes[self._level_index]
         level = self._levels[self._level_index]
         width = level["width"]
         height = level["height"]
         cell_size, origin_x, origin_y = self._layout(width, height)
 
-        title = (
-            f"Level {self._level_index + 1}/{len(self._mazes)}  "
-            f"{width}x{height}"
-        )
-        self._draw_text(pygame, screen, title_font, title, self.TEXT, 24, 16)
-        details = (
-            "Arrows/WASD: move   N/B: level   Esc/Q: quit"
-        )
-        self._draw_text(
-            pygame, screen, info_font, details, self.MUTED_TEXT, 24, 52
-        )
-
         self._draw_cells(
             pygame, screen, maze, cell_size, origin_x, origin_y, width, height
         )
-        self._draw_player(pygame,
-                          screen, cell_size, origin_x, origin_y
-                          )
+        size = int(cell_size * 0.3)
+        size_super = int(cell_size * 0.7)
+        image = pygame.transform.scale(self.pacgums_image, (size, size))
+        image_super = pygame.transform.scale(
+            self.super_pacgums_image, (size_super, size_super))
+        for k, p in self.super_pacgums:
+            center_x = origin_x + k * cell_size + cell_size // 2
+            center_y = origin_y + p * cell_size + cell_size // 2
+            screen.blit(image_super, (center_x - size_super //
+                        2, center_y - size_super // 2))
+
+        for x, y in self.pacgums.pacgums:
+            center_x = origin_x + x * cell_size + cell_size // 2
+            center_y = origin_y + y * cell_size + cell_size // 2
+            screen.blit(image, (center_x - size // 2, center_y - size // 2))
+        self._draw_ghosts(pygame, screen, cell_size, origin_x, origin_y, maze)
+        self._draw_player(pygame, screen, cell_size, origin_x, origin_y)
+        self._draw_menu(pygame, screen)
 
     def _layout(self, width: int, height: int) -> tuple[int, int, int]:
         window_width, window_height = self.WINDOW_SIZE
@@ -188,8 +231,8 @@ class MazeViewer:
         maze_width = width * cell_size
         maze_height = height * cell_size
         origin_x = (window_width - maze_width) // 2
-        origin_y = self.HEADER_HEIGHT + (
-            window_height - self.HEADER_HEIGHT - maze_height
+        origin_y = 30 + (
+            window_height - maze_height
         ) // 2
         return cell_size, origin_x, origin_y
 
@@ -208,7 +251,6 @@ class MazeViewer:
             for x in range(width):
                 left = origin_x + x * cell_size
                 top = origin_y + y * cell_size
-
                 floor_surface = pygame.Surface(
                     (cell_size, cell_size), pygame.SRCALPHA)
                 floor_surface.fill((230, 210, 180, 180))
@@ -262,17 +304,89 @@ class MazeViewer:
             )
             screen.blit(wall, (start_x, min(start_y, end_y)))
 
-    def _draw_text(
-        self,
-        pygame: Any,
-        screen: Any,
-        font: Any,
-        message: str,
-        colour: tuple[int, int, int],
-        x: int,
-        y: int,
-    ) -> None:
-        screen.blit(font.render(message, True, colour), (x, y))
+    def _draw_menu(self, pygame: Any, screen: Any) -> None:
+
+        images = [
+            self.hud,
+            self.hud,
+            self.hud,
+            self.hud,
+        ]
+        elapsed = (
+            pygame.time.get_ticks() - self.start_time
+        ) // 1000
+
+        values = [
+            f"Score: {self.player.score}",
+            f"Level: {self._level_index + 1}",
+            f"Time: {elapsed}"
+        ]
+
+        font = pygame.font.Font(None, 28)
+
+        panel_width = 220
+        panel_height = 60
+        gap = 24
+
+        start_x = (
+            self.WINDOW_SIZE[0]
+            - (4 * panel_width + 3 * gap)
+        ) // 2
+
+        y = 25
+
+        for i in range(4):
+            panel = pygame.transform.scale(
+                images[i], (panel_width, panel_height)
+            )
+
+            x = start_x + i * (panel_width + gap)
+
+            screen.blit(panel, (x, y))
+
+            if i == 0:
+                label = font.render("Lives:", True, self.TEXT)
+                icon_size = 28
+                label_icon_gap = 10
+                icon_gap = 6
+                icon = pygame.transform.scale(
+                    self.life_icon, (icon_size, icon_size)
+                )
+                icons_width = (
+                    self.player.lives * icon_size
+                    + max(0, self.player.lives - 1) * icon_gap
+                )
+                group_width = label.get_width() + label_icon_gap + icons_width
+                group_x = x + (panel_width - group_width) // 2
+                label_rect = label.get_rect(
+                    midleft=(group_x, y + panel_height // 2)
+                )
+                screen.blit(label, label_rect)
+
+                icons_x = group_x + label.get_width() + label_icon_gap
+                icons_y = y + (panel_height - icon_size) // 2
+                for life in range(max(0, self.player.lives)):
+                    screen.blit(
+                        icon,
+                        (icons_x + life * (icon_size + icon_gap), icons_y),
+                    )
+                continue
+
+            text = font.render(values[i - 1], True, self.TEXT)
+            text_rect = text.get_rect(
+                center=(x + panel_width // 2, y + panel_height // 2)
+            )
+            screen.blit(text, text_rect)
+
+    def _change_level(self, index: int) -> None:
+        self._level_index = index
+        self.maze = self._mazes[index]
+        self.player.start_position = (
+            len(self.maze.maze[0]) // 2, len(self.maze.maze) // 2)
+        self.player.current_pos = self.player.start_position
+
+        self.pacgums = Pacgums(self.maze, self.player)
+        self.super_pacgums = self.pacgums.super_pacgums
 
     def _draw_player(
         self,
@@ -305,3 +419,66 @@ class MazeViewer:
                 (round(center_x), round(center_y)),
                 radius,
             )
+
+    def _inside(self, maze: Any, x: int, y: int) -> bool:
+        return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
+
+    def _draw_ghosts(
+        self,
+        pygame: Any,
+        screen: Any,
+        cell_size: int,
+        origin_x: int,
+        origin_y: int,
+        maze: Any,
+    ) -> None:
+        N, E, S, W = 1, 2, 4, 8
+        ghosts = []
+
+        def cell(x: int, y: int) -> Any:
+            return maze.maze[y][x]
+        width = len(maze.maze[0])
+        height = len(maze.maze)
+
+        x1, y1 = (0, 0)
+        if self._inside(maze, x1 + 1, y1) and not cell(x1, y1) & E:
+            x_red, y_red = x1 + 1, y1
+        elif self._inside(maze, x1, y1 + 1) and not cell(x1, y1) & S:
+            x_red, y_red = x1, y1 + 1
+        else:
+            x_red, y_red = x1 + 1, y1 + 1
+        ghosts.append((x_red, y_red, self.red_ghost))
+
+        x2, y2 = (width - 1, 0)
+        if self._inside(maze, x2 - 1, y2) and not cell(x2, y2) & W:
+            x_pink, y_pink = x2 - 1, y2
+        elif self._inside(maze, x2, y2 + 1) and not cell(x2, y2) & S:
+            x_pink, y_pink = x2, y2 + 1
+        else:
+            x_pink, y_pink = x2 - 1, y2 + 1
+        ghosts.append((x_pink, y_pink, self.pink_ghost))
+
+        x3, y3 = (width-1, height - 1)
+        if self._inside(maze, x3 - 1, y3) and not cell(x3, y3) & W:
+            x_blue, y_blue = x3 - 1, y3
+        elif self._inside(maze, x3, y3 - 1) and not cell(x3, y3) & N:
+            x_blue, y_blue = x3, y3 - 1
+        else:
+            x_blue, y_blue = x3 - 1, y3 - 1
+        ghosts.append((x_blue, y_blue, self.blue_ghost))
+
+        x4, y4 = 0, height-1
+        if self._inside(maze, x4 + 1, y4) and not cell(x4, y4) & E:
+            x_orange, y_orange = x4 + 1, y4
+        elif self._inside(maze, x4, y4 - 1) and not cell(x4, y4) & N:
+            x_orange, y_orange = x4, y4 - 1
+        else:
+            x_orange, y_orange = x4 + 1, y4 - 1
+        ghosts.append((x_orange, y_orange, self.orange_ghost))
+
+        size = int(cell_size * 0.8)
+        for x, y, sprite in ghosts:
+            center_x = origin_x + x * cell_size + cell_size // 2
+            center_y = origin_y + y * cell_size + cell_size // 2
+            image = pygame.transform.scale(sprite, (size, size))
+            screen.blit(image, (center_x - size // 2, center_y - size // 2))

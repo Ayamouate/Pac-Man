@@ -1,3 +1,5 @@
+MYPY_CACHE_DIR ?= /tmp/pac-man-mypy-cache
+
 .PHONY: install run debug clean lint
 
 install:
@@ -16,4 +18,4 @@ clean:
 
 lint:
 	flake8 .
-	python3 -m mypy --explicit-package-bases . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	python3 -m mypy --cache-dir $(MYPY_CACHE_DIR) --explicit-package-bases . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

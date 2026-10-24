@@ -33,4 +33,6 @@ class Loader:
 
         if current_walls & wall or next_walls & opposite_wall:
             return False
-        return True
+
+        else:
+            return True

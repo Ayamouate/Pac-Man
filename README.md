@@ -11,8 +11,8 @@ Run the parser and Pygame viewer with:
 python3 pac-man.py config.json
 ```
 
-The viewer shows one level at a time. Use the arrow keys or WASD to move, N/B
-to change levels, and Esc or Q to quit.
+The viewer shows one level at a time. Use Left/Right (or A/D) to change levels,
+P to toggle the shortest path, and Esc or Q to quit.
 
 ## Configuration
 

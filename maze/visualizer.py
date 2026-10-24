@@ -1,7 +1,6 @@
 """Pygame display for the generated maze levels."""
 
 from __future__ import annotations
-import pygame
 from engine.pacgums import Pacgums
 from engine.interactions import InteractionManager
 from collections.abc import Mapping, Sequence
@@ -23,7 +22,10 @@ class MazeViewer:
     BACKGROUND = (8, 10, 24)
     WALL = (107, 66, 38)
     TEXT = (55, 32, 20)
+    MENU_TEXT = (255, 250, 205)
+    MENU_SELECTED = (255, 215, 0)
     MUTED_TEXT = (155, 165, 195)
+    MAIN_MENU = ["Start Game", "View Highscores", "Instructions", "Exit"]
 
     def __init__(self, data: Any, mazes: Sequence[Any]) -> None:
         levels = data["levels"]
@@ -61,7 +63,11 @@ class MazeViewer:
         self.orange_ghost: Any = None
         self.hud: Any = None
         self.life_icon: Any = None
-        self.start_time = pygame.time.get_ticks()
+        self.menu_image: Any = None
+        self.instruction_image: Any = None
+        self.start_time = 0
+        self.state = "menu"
+        self.selected = 0
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -110,6 +116,17 @@ class MazeViewer:
         self.life_icon = pygame.image.load(
             "assets/life_icon.png"
         ).convert_alpha()
+        self.menu_image = pygame.image.load(
+            "assets/menu_overlay.png"
+        ).convert_alpha()
+        try:
+            self.instruction_image = pygame.image.load(
+                "assets/instructions.png"
+            ).convert_alpha()
+        except (pygame.error, FileNotFoundError):
+            # The instructions screen has a text fallback for installations
+            # that do not include a separate instructions artwork asset.
+            self.instruction_image = None
         try:
             self.player_image = pygame.image.load(
                 "assets/player.png"
@@ -127,6 +144,7 @@ class MazeViewer:
         info_font = pygame.font.Font(None, 24)
         clock = pygame.time.Clock()
         last_move = pygame.time.get_ticks()
+        self.start_time = last_move
 
         move_delay = 180
         running = True
@@ -139,7 +157,7 @@ class MazeViewer:
                         running = self._handle_key(pygame, event.key)
                 now = pygame.time.get_ticks()
 
-                if now - last_move >= move_delay:
+                if self.state == "playing" and now - last_move >= move_delay:
                     maze = self._mazes[self._level_index]
                     self.player.move(maze)
                     InteractionManager(
@@ -147,16 +165,25 @@ class MazeViewer:
                         self.pacgums.pacgums,
                         self.super_pacgums,
                     ).check_pacgum()
+                    if not self.pacgums.pacgums:
+                        next_level = (self._level_index + 1) % len(self._mazes)
+                        self._change_level(next_level)
                     last_move = now
 
-                self._draw(pygame, screen, title_font, info_font)
+                if self.state == "menu":
+                    self._draw_main_menu(pygame, screen)
+                elif self.state == "playing":
+                    self._draw(pygame, screen, title_font, info_font)
+                elif self.state == "instructions":
+                    self._draw_instructions(pygame, screen)
+                elif self.state == "highscores":
+                    self._draw_highscores(pygame, screen)
                 pygame.display.flip()
                 clock.tick(60)
         finally:
             pygame.quit()
 
     def _handle_key(self, pygame: Any, key: int) -> bool:
-
         moves = {
             pygame.K_UP: "up",
             pygame.K_w: "up",
@@ -167,9 +194,43 @@ class MazeViewer:
             pygame.K_RIGHT: "right",
             pygame.K_d: "right",
         }
-        if key in (pygame.K_ESCAPE, pygame.K_q):
+
+        if self.state == "menu":
+            if key == pygame.K_UP:
+                self.selected = (self.selected - 1) % len(self.MAIN_MENU)
+            elif key == pygame.K_DOWN:
+                self.selected = (self.selected + 1) % len(self.MAIN_MENU)
+            elif key == pygame.K_RETURN or key == pygame.K_KP_ENTER:
+                if self.selected == 0:
+                    self.state = "playing"
+                    self.start_time = pygame.time.get_ticks()
+                elif self.selected == 1:
+                    self.state = "highscores"
+                elif self.selected == 2:
+                    self.state = "instructions"
+                else:
+                    return False
+            elif key in (pygame.K_ESCAPE, pygame.K_q):
+                return False
+            return True
+
+        if self.state in ("instructions", "highscores"):
+            if key in (
+                pygame.K_ESCAPE,
+                pygame.K_q,
+                pygame.K_RETURN,
+                pygame.K_KP_ENTER,
+                pygame.K_BACKSPACE,
+            ):
+                self.state = "menu"
+            return True
+
+        if key == pygame.K_ESCAPE:
+            self.state = "menu"
+            return True
+        if key == pygame.K_q:
             return False
-        elif key == pygame.K_n:
+        if key == pygame.K_n:
             index = (self._level_index + 1) % len(self._mazes)
             self._change_level(index)
             return True
@@ -178,14 +239,73 @@ class MazeViewer:
             self._change_level(index)
             return True
 
-        if key not in moves:
-            return True
-
         if key in moves:
             self.player.direction = moves[key]
-            return True
-
         return True
+
+    def _draw_main_menu(self, pygame: Any, screen: Any) -> None:
+        screen.blit(self.background, (0, 0))
+        if self.menu_image is not None:
+            menu_image = pygame.transform.scale(
+                self.menu_image, self.WINDOW_SIZE
+            )
+            screen.blit(menu_image, (0, 0))
+
+        menu_positions = [(547, 189), (558, 360), (543, 528), (555, 700)]
+        font = pygame.font.Font(None, 50)
+        for index, label in enumerate(self.MAIN_MENU):
+            colour = (
+                self.MENU_SELECTED
+                if index == self.selected
+                else self.MENU_TEXT
+            )
+            text = font.render(label, True, colour)
+            screen.blit(text, text.get_rect(center=menu_positions[index]))
+
+    def _draw_instructions(self, pygame: Any, screen: Any) -> None:
+        screen.blit(self.background, (0, 0))
+        if self.instruction_image is not None:
+            size = min(self.WINDOW_SIZE) - 200
+            image = pygame.transform.scale(
+                self.instruction_image, (size, size)
+            )
+            screen.blit(image, image.get_rect(center=(550, 450)))
+            return
+
+        panel = pygame.Surface((760, 560), pygame.SRCALPHA)
+        panel.fill((8, 10, 24, 225))
+        screen.blit(panel, panel.get_rect(center=(550, 450)))
+        title_font = pygame.font.Font(None, 56)
+        body_font = pygame.font.Font(None, 32)
+        title = title_font.render("Instructions", True, self.MENU_SELECTED)
+        screen.blit(title, title.get_rect(center=(550, 220)))
+        lines = (
+            "Arrow keys or WASD: move Pac-Man",
+            "Eat pac-gums and super pac-gums to score points",
+            "N / P: change level",
+            "Enter, Backspace, or Esc: return to menu",
+        )
+        for index, line in enumerate(lines):
+            text = body_font.render(line, True, self.MENU_TEXT)
+            screen.blit(text, text.get_rect(center=(550, 310 + index * 55)))
+
+    def _draw_highscores(self, pygame: Any, screen: Any) -> None:
+        screen.blit(self.background, (0, 0))
+        panel = pygame.Surface((700, 500), pygame.SRCALPHA)
+        panel.fill((8, 10, 24, 225))
+        screen.blit(panel, panel.get_rect(center=(550, 450)))
+        title_font = pygame.font.Font(None, 56)
+        body_font = pygame.font.Font(None, 32)
+        title = title_font.render("Highscores", True, self.MENU_SELECTED)
+        screen.blit(title, title.get_rect(center=(550, 250)))
+        score = body_font.render(
+            f"Current score: {self.player.score}", True, self.MENU_TEXT
+        )
+        screen.blit(score, score.get_rect(center=(550, 370)))
+        hint = body_font.render(
+            "Press Enter or Esc to return", True, self.MUTED_TEXT
+        )
+        screen.blit(hint, hint.get_rect(center=(550, 520)))
 
     def _draw(
         self, pygame: Any, screen: Any, title_font: Any, info_font: Any

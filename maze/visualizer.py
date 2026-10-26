@@ -88,65 +88,52 @@ class MazeViewer:
 
         pygame.init()
         screen = pygame.display.set_mode(self.WINDOW_SIZE)
-        asset_dir = Path(__file__).resolve().parent.parent / "assets"
 
         self.background = pygame.image.load(
-            str(asset_dir / "Bg.jpeg")
-        ).convert()
+            "assets/Bg.jpeg").convert()
 
         self.background = pygame.transform.scale(
             self.background, self.WINDOW_SIZE
         )
         self.wall_h = pygame.image.load(
-            str(asset_dir / "wall_h.png")
-        ).convert_alpha()
+                "assets/wall_h.png"
+            ).convert_alpha()
         self.wall_v = pygame.image.load(
-            str(asset_dir / "wall_v.png")
-        ).convert_alpha()
+                "assets/wall_v.png"
+            ).convert_alpha()
         self.red_ghost = pygame.image.load(
-            str(asset_dir / "red.png")
-        ).convert_alpha()
+                "assets/red.png"
+            ).convert_alpha()
         self.blue_ghost = pygame.image.load(
-            str(asset_dir / "bleu.png")
-        ).convert_alpha()
+                "assets/bleu.png"
+            ).convert_alpha()
         self.pink_ghost = pygame.image.load(
-            str(asset_dir / "pink.png")
-        ).convert_alpha()
+                "assets/pink.png"
+            ).convert_alpha()
         self.orange_ghost = pygame.image.load(
-            str(asset_dir / "orange.png")
-        ).convert_alpha()
+                "assets/orange.png"
+            ).convert_alpha()
         self.hud = pygame.image.load(
-            str(asset_dir / "hud.png")
-        ).convert_alpha()
-        self.life_icon = pygame.image.load(
-            str(asset_dir / "life_icon.png")
-        ).convert_alpha()
-        try:
-            self.menu_image = pygame.image.load(
-                str(asset_dir / "menu.png")
+                "assets/hud.png"
             ).convert_alpha()
-        except (pygame.error, FileNotFoundError):
-            self.menu_image = None
-        try:
-            self.instruction_image = pygame.image.load(
-                str(asset_dir / "instructions.png")
+        self.menu_image = pygame.image.load(
+                "assets/menu.png"
             ).convert_alpha()
-        except (pygame.error, FileNotFoundError):
-            # The instructions screen has a text fallback for installations
-            # that do not include a separate instructions artwork asset.
-            self.instruction_image = None
+        self.instruction_image = pygame.image.load(
+                "assets/instructions.png"
+            ).convert_alpha()
         try:
             self.player_image = pygame.image.load(
-                str(asset_dir / "player.png")
+                "assets/player.png"
             ).convert_alpha()
         except (pygame.error, FileNotFoundError):
             print("Player image not found. Using yellow circle.")
         self.pacgums_image = pygame.image.load(
-            str(asset_dir / "pacgum.png")
-        ).convert_alpha()
+                "assets/pacgum.png"
+            ).convert_alpha()
         self.super_pacgums_image = pygame.image.load(
-            str(asset_dir / "super_pacgum.png")
-        ).convert_alpha()
+                "assets/super_pacgum.png"
+            ).convert_alpha()
         pygame.display.set_caption("Pac-Man Maze Viewer")
         title_font = pygame.font.Font(None, 32)
         info_font = pygame.font.Font(None, 24)
@@ -205,10 +192,10 @@ class MazeViewer:
 
         if self.state == "menu":
             if key == pygame.K_UP:
-                self.selected = (self.selected - 1) % len(self.MAIN_MENU)
+                self.selected = (self.selected - 1) % 4
             elif key == pygame.K_DOWN:
-                self.selected = (self.selected + 1) % len(self.MAIN_MENU)
-            elif key == pygame.K_RETURN or key == pygame.K_KP_ENTER:
+                self.selected = (self.selected + 1) % 4
+            elif key == pygame.K_RETURN:
                 if self.selected == 0:
                     self.state = "playing"
                     self.start_time = pygame.time.get_ticks()
@@ -227,7 +214,6 @@ class MazeViewer:
                 pygame.K_ESCAPE,
                 pygame.K_q,
                 pygame.K_RETURN,
-                pygame.K_KP_ENTER,
                 pygame.K_BACKSPACE,
             ):
                 self.state = "menu"
@@ -242,7 +228,7 @@ class MazeViewer:
             index = (self._level_index + 1) % len(self._mazes)
             self._change_level(index)
             return True
-        elif key == pygame.K_p:
+        elif key == pygame.K_b:
             index = (self._level_index - 1) % len(self._mazes)
             self._change_level(index)
             return True

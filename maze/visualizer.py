@@ -183,7 +183,7 @@ class MazeViewer:
                 elif self.state == "playing":
                     self._draw(pygame, screen, title_font, info_font)
                 elif self.state == "instructions":
-                    self._draw_instructions(pygame, screen)
+                    self._instructions(pygame, screen)
                 elif self.state == "highscores":
                     self._draw_highscores(pygame, screen)
                 pygame.display.flip()
@@ -250,19 +250,34 @@ class MazeViewer:
         if key in moves:
             self.player.direction = moves[key]
         return True
-    def _draw_main_menu(self, pygame, screen):
-        cord = [(547,189), (558,360) ,(543,528),(555,700)]
-        screen.blit(self.background, (0,0))
+
+    def _instructions(self, pygame: Any, screen: Any) -> None:
+        screen.blit(self.background, (0, 0))
+        center_x = self.WINDOW_SIZE[0] // 2
+        center_y = self.WINDOW_SIZE[1] // 2
+
+        size = 700
+        image = pygame.transform.scale(
+            self.instruction_image, (size, size)
+        )
+        rect = image.get_rect(
+            center=(round(center_x), round(center_y))
+        )
+        screen.blit(image, rect)
+
+    def _draw_main_menu(self, pygame: Any, screen: Any) -> None:
+        cord = [(547, 189), (558, 360), (543, 528), (555, 700)]
+        screen.blit(self.background, (0, 0))
         center_x = self.WINDOW_SIZE[0] // 2
         center_y = self.WINDOW_SIZE[1] // 2
 
         size = 800
         image = pygame.transform.scale(
-                self.menu_image, (size, size)
-            )
+            self.menu_image, (size, size)
+        )
         rect = image.get_rect(
-                center=(round(center_x), round(center_y))
-            )
+            center=(round(center_x), round(center_y))
+        )
         screen.blit(image, rect)
         for i in range(4):
             font = pygame.font.Font(None, 50)
@@ -271,56 +286,28 @@ class MazeViewer:
             else:
                 text = font.render(self.MAIN_MENU[i], True, (255, 250, 205))
             text_rect = text.get_rect(
-                    center= cord[i]
-                        
-                )
+                center=cord[i]
+
+            )
             screen.blit(text, text_rect)
 
-
-    def _draw_instructions(self, pygame: Any, screen: Any) -> None:
-        screen.blit(self.background, (0, 0))
-        if self.instruction_image is not None:
-            size = min(self.WINDOW_SIZE) - 200
-            image = pygame.transform.scale(
-                self.instruction_image, (size, size)
-            )
-            screen.blit(image, image.get_rect(center=(550, 450)))
-            return
-
-        panel = pygame.Surface((760, 560), pygame.SRCALPHA)
-        panel.fill((8, 10, 24, 225))
-        screen.blit(panel, panel.get_rect(center=(550, 450)))
-        title_font = pygame.font.Font(None, 56)
-        body_font = pygame.font.Font(None, 32)
-        title = title_font.render("Instructions", True, self.MENU_SELECTED)
-        screen.blit(title, title.get_rect(center=(550, 220)))
-        lines = (
-            "Arrow keys or WASD: move Pac-Man",
-            "Eat pac-gums and super pac-gums to score points",
-            "N / P: change level",
-            "Enter, Backspace, or Esc: return to menu",
-        )
-        for index, line in enumerate(lines):
-            text = body_font.render(line, True, self.MENU_TEXT)
-            screen.blit(text, text.get_rect(center=(550, 310 + index * 55)))
-
-    def _draw_highscores(self, pygame: Any, screen: Any) -> None:
-        screen.blit(self.background, (0, 0))
-        panel = pygame.Surface((700, 500), pygame.SRCALPHA)
-        panel.fill((8, 10, 24, 225))
-        screen.blit(panel, panel.get_rect(center=(550, 450)))
-        title_font = pygame.font.Font(None, 56)
-        body_font = pygame.font.Font(None, 32)
-        title = title_font.render("Highscores", True, self.MENU_SELECTED)
-        screen.blit(title, title.get_rect(center=(550, 250)))
-        score = body_font.render(
-            f"Current score: {self.player.score}", True, self.MENU_TEXT
-        )
-        screen.blit(score, score.get_rect(center=(550, 370)))
-        hint = body_font.render(
-            "Press Enter or Esc to return", True, self.MUTED_TEXT
-        )
-        screen.blit(hint, hint.get_rect(center=(550, 520)))
+    # def _draw_highscores(self, pygame: Any, screen: Any) -> None:
+    #     screen.blit(self.background, (0, 0))
+    #     panel = pygame.Surface((700, 500), pygame.SRCALPHA)
+    #     panel.fill((8, 10, 24, 225))
+    #     screen.blit(panel, panel.get_rect(center=(550, 450)))
+    #     title_font = pygame.font.Font(None, 56)
+    #     body_font = pygame.font.Font(None, 32)
+    #     title = title_font.render("Highscores", True, self.MENU_SELECTED)
+    #     screen.blit(title, title.get_rect(center=(550, 250)))
+    #     score = body_font.render(
+    #         f"Current score: {self.player.score}", True, self.MENU_TEXT
+    #     )
+    #     screen.blit(score, score.get_rect(center=(550, 370)))
+    #     hint = body_font.render(
+    #         "Press Enter or Esc to return", True, self.MUTED_TEXT
+    #     )
+    #     screen.blit(hint, hint.get_rect(center=(550, 520)))
 
     def _draw(
         self, pygame: Any, screen: Any, title_font: Any, info_font: Any
@@ -452,6 +439,7 @@ class MazeViewer:
         ) // 1000
 
         values = [
+            f"Lives: {self.player.lives}",
             f"Score: {self.player.score}",
             f"Level: {self._level_index + 1}",
             f"Time: {elapsed}"
@@ -461,7 +449,7 @@ class MazeViewer:
 
         panel_width = 220
         panel_height = 60
-        gap = 24
+        gap = 20
 
         start_x = (
             self.WINDOW_SIZE[0]
@@ -479,38 +467,15 @@ class MazeViewer:
 
             screen.blit(panel, (x, y))
 
-            if i == 0:
-                label = font.render("Lives:", True, self.TEXT)
-                icon_size = 28
-                label_icon_gap = 10
-                icon_gap = 6
-                icon = pygame.transform.scale(
-                    self.life_icon, (icon_size, icon_size)
-                )
-                icons_width = (
-                    self.player.lives * icon_size
-                    + max(0, self.player.lives - 1) * icon_gap
-                )
-                group_width = label.get_width() + label_icon_gap + icons_width
-                group_x = x + (panel_width - group_width) // 2
-                label_rect = label.get_rect(
-                    midleft=(group_x, y + panel_height // 2)
-                )
-                screen.blit(label, label_rect)
+            text = font.render(values[i], True, self.TEXT)
 
-                icons_x = group_x + label.get_width() + label_icon_gap
-                icons_y = y + (panel_height - icon_size) // 2
-                for life in range(max(0, self.player.lives)):
-                    screen.blit(
-                        icon,
-                        (icons_x + life * (icon_size + icon_gap), icons_y),
-                    )
-                continue
-
-            text = font.render(values[i - 1], True, self.TEXT)
             text_rect = text.get_rect(
-                center=(x + panel_width // 2, y + panel_height // 2)
+                center=(
+                    x + panel_width // 2,
+                    y + panel_height // 2,
+                )
             )
+
             screen.blit(text, text_rect)
 
     def _change_level(self, index: int) -> None:

@@ -1,6 +1,7 @@
 """Pygame display for the generated maze levels."""
 
 from __future__ import annotations
+from pathlib import Path
 from engine.pacgums import Pacgums
 from engine.interactions import InteractionManager
 from collections.abc import Mapping, Sequence
@@ -26,6 +27,9 @@ class MazeViewer:
     MENU_SELECTED = (255, 215, 0)
     MUTED_TEXT = (155, 165, 195)
     MAIN_MENU = ["Start Game", "View Highscores", "Instructions", "Exit"]
+    MENU_ARTWORK_SIZE = (921, 1152)
+    # Centers of the four cards in assets/menu.png, in source-image pixels.
+    MENU_CARD_CENTERS = ((466, 210), (466, 451), (466, 698), (466, 945))
 
     def __init__(self, data: Any, mazes: Sequence[Any]) -> None:
         levels = data["levels"]
@@ -84,44 +88,48 @@ class MazeViewer:
 
         pygame.init()
         screen = pygame.display.set_mode(self.WINDOW_SIZE)
+        asset_dir = Path(__file__).resolve().parent.parent / "assets"
 
         self.background = pygame.image.load(
-            "assets/Bg.jpeg"
+            str(asset_dir / "Bg.jpeg")
         ).convert()
 
         self.background = pygame.transform.scale(
             self.background, self.WINDOW_SIZE
         )
         self.wall_h = pygame.image.load(
-            "assets/wall_h.png"
+            str(asset_dir / "wall_h.png")
         ).convert_alpha()
         self.wall_v = pygame.image.load(
-            "assets/wall_v.png"
+            str(asset_dir / "wall_v.png")
         ).convert_alpha()
         self.red_ghost = pygame.image.load(
-            "assets/red.png"
+            str(asset_dir / "red.png")
         ).convert_alpha()
         self.blue_ghost = pygame.image.load(
-            "assets/bleu.png"
+            str(asset_dir / "bleu.png")
         ).convert_alpha()
         self.pink_ghost = pygame.image.load(
-            "assets/pink.png"
+            str(asset_dir / "pink.png")
         ).convert_alpha()
         self.orange_ghost = pygame.image.load(
-            "assets/orange.png"
+            str(asset_dir / "orange.png")
         ).convert_alpha()
         self.hud = pygame.image.load(
-            "assets/hud.png"
+            str(asset_dir / "hud.png")
         ).convert_alpha()
         self.life_icon = pygame.image.load(
-            "assets/life_icon.png"
-        ).convert_alpha()
-        self.menu_image = pygame.image.load(
-            "assets/menu_overlay.png"
+            str(asset_dir / "life_icon.png")
         ).convert_alpha()
         try:
+            self.menu_image = pygame.image.load(
+                str(asset_dir / "menu.png")
+            ).convert_alpha()
+        except (pygame.error, FileNotFoundError):
+            self.menu_image = None
+        try:
             self.instruction_image = pygame.image.load(
-                "assets/instructions.png"
+                str(asset_dir / "instructions.png")
             ).convert_alpha()
         except (pygame.error, FileNotFoundError):
             # The instructions screen has a text fallback for installations
@@ -129,15 +137,15 @@ class MazeViewer:
             self.instruction_image = None
         try:
             self.player_image = pygame.image.load(
-                "assets/player.png"
+                str(asset_dir / "player.png")
             ).convert_alpha()
         except (pygame.error, FileNotFoundError):
             print("Player image not found. Using yellow circle.")
         self.pacgums_image = pygame.image.load(
-            "assets/pacgum.png"
+            str(asset_dir / "pacgum.png")
         ).convert_alpha()
         self.super_pacgums_image = pygame.image.load(
-            "assets/super_pacgum.png"
+            str(asset_dir / "super_pacgum.png")
         ).convert_alpha()
         pygame.display.set_caption("Pac-Man Maze Viewer")
         title_font = pygame.font.Font(None, 32)
@@ -251,7 +259,15 @@ class MazeViewer:
             )
             screen.blit(menu_image, (0, 0))
 
-        menu_positions = [(547, 189), (558, 360), (543, 528), (555, 700)]
+        artwork_width, artwork_height = self.MENU_ARTWORK_SIZE
+        window_width, window_height = self.WINDOW_SIZE
+        menu_positions = [
+            (
+                round(x * window_width / artwork_width),
+                round(y * window_height / artwork_height),
+            )
+            for x, y in self.MENU_CARD_CENTERS
+        ]
         font = pygame.font.Font(None, 50)
         for index, label in enumerate(self.MAIN_MENU):
             colour = (
@@ -504,6 +520,7 @@ class MazeViewer:
         self.player.start_position = (
             len(self.maze.maze[0]) // 2, len(self.maze.maze) // 2)
         self.player.current_pos = self.player.start_position
+        self.player.direction = ""
 
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums

@@ -221,6 +221,8 @@ class MazeViewer:
                 if self.selected == 0:
                     self.state = "playing"
                     self.start_time = pygame.time.get_ticks()
+                    self.pause_start = 0
+                    self.pause_total_time = 0
                 elif self.selected == 1:
                     self.state = "highscores"
                 elif self.selected == 2:

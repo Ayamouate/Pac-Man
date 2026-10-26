@@ -158,15 +158,27 @@ class MazeViewer:
                 if self.state == "playing" and now - last_move >= move_delay:
                     maze = self._mazes[self._level_index]
                     self.player.move(maze)
-                    InteractionManager(
+                    interaction = InteractionManager(
                         self.player,
                         self.pacgums.pacgums,
                         self.super_pacgums,
-                    ).check_pacgum()
-                    if not self.pacgums.pacgums:
-                        next_level = (self._level_index + 1) % len(self._mazes)
-                        self._change_level(next_level)
+                    )
+                    interaction.check_pacgum()
+                    if (
+                        not self.pacgums.pacgums
+                        and not self.super_pacgums
+                    ):
+                        if self._level_index == len(self._mazes) - 1:
+                            self.state = "victory"
+                        else:
+                            self._change_level(self._level_index + 1)
                     last_move = now
+
+                    # ghost collision
+                    ghost_positions = self._get_ghost_positions(maze)
+                    if interaction.check_ghost_collision(ghost_positions):
+                        if not self.player.is_alive():
+                            self.state = "over"
 
                 if self.state == "menu":
                     self._draw_main_menu(pygame, screen)
@@ -608,3 +620,43 @@ class MazeViewer:
             center_y = origin_y + y * cell_size + cell_size // 2
             image = pygame.transform.scale(sprite, (size, size))
             screen.blit(image, (center_x - size // 2, center_y - size // 2))
+
+    def _get_ghost_positions(self, maze: Any) -> set[tuple[int, int]]:
+        N, E, S, W = 1, 2, 4, 8
+
+        def cell(x: int, y: int) -> int:
+            return int(maze.maze[y][x])
+
+        width = len(maze.maze[0])
+        height = len(maze.maze)
+
+        ghosts = set()
+
+        # Red ghost
+        if self._inside(maze, 1, 0) and not cell(0, 0) & E:
+            ghosts.add((1, 0))
+        elif self._inside(maze, 0, 1) and not cell(0, 0) & S:
+            ghosts.add((0, 1))
+
+        # Pink ghost
+        x, y = width - 1, 0
+        if self._inside(maze, x - 1, y) and not cell(x, y) & W:
+            ghosts.add((x - 1, y))
+        elif self._inside(maze, x, y + 1) and not cell(x, y) & S:
+            ghosts.add((x, y + 1))
+
+        # Blue ghost
+        x, y = width - 1, height - 1
+        if self._inside(maze, x - 1, y) and not cell(x, y) & W:
+            ghosts.add((x - 1, y))
+        elif self._inside(maze, x, y - 1) and not cell(x, y) & N:
+            ghosts.add((x, y - 1))
+
+        # Orange ghost
+        x, y = 0, height - 1
+        if self._inside(maze, x + 1, y) and not cell(x, y) & E:
+            ghosts.add((x + 1, y))
+        elif self._inside(maze, x, y - 1) and not cell(x, y) & N:
+            ghosts.add((x, y - 1))
+
+        return ghosts

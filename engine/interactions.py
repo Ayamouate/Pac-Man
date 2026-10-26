@@ -19,3 +19,12 @@ class InteractionManager:
         elif self.player.current_pos in self.super_pacgums:
             self.super_pacgums.remove(self.player.current_pos)
             self.player.add_super_score()
+
+    def check_ghost_collision(
+        self,
+        ghost_position: set[tuple[int, int]]
+    ) -> bool:
+        if self.player.current_pos in ghost_position:
+            self.player.lose_life()
+            return True
+        return False

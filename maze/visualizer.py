@@ -254,6 +254,8 @@ class MazeViewer:
             self.player.direction = self.last_direction
             return True
         elif key == pygame.K_2 and self.game_state == "pause":
+            self._change_level(0)
+            self.player.score = 0
             self.game_state = "playing"
             self.state = "menu"
             return True

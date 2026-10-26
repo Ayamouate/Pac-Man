@@ -28,7 +28,6 @@ class MazeViewer:
     MUTED_TEXT = (155, 165, 195)
     MAIN_MENU = ["Start Game", "View Highscores", "Instructions", "Exit"]
     MENU_ARTWORK_SIZE = (921, 1152)
-    # Centers of the four cards in assets/menu.png, in source-image pixels.
     MENU_CARD_CENTERS = ((466, 210), (466, 451), (466, 698), (466, 945))
 
     def __init__(self, data: Any, mazes: Sequence[Any]) -> None:
@@ -68,10 +67,15 @@ class MazeViewer:
         self.hud: Any = None
         self.life_icon: Any = None
         self.menu_image: Any = None
+        self.pause_menu: Any = None
         self.instruction_image: Any = None
         self.start_time = 0
         self.state = "menu"
         self.selected = 0
+        self.game_state = "playing"
+        self.pause_start = 0
+        self.pause_total_time = 0
+        self.last_direction: str | None = None
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -121,6 +125,9 @@ class MazeViewer:
             ).convert_alpha()
         self.instruction_image = pygame.image.load(
                 "assets/instructions.png"
+            ).convert_alpha()
+        self.pause_menu = pygame.image.load(
+                "assets/pause_menu.png"
             ).convert_alpha()
         try:
             self.player_image = pygame.image.load(
@@ -179,6 +186,9 @@ class MazeViewer:
 
                 if self.state == "menu":
                     self._draw_main_menu(pygame, screen)
+                elif self.state == "playing" and self.game_state == "pause":
+                    self._draw(pygame, screen, title_font, info_font)
+                    self._draw_pause_menu(pygame, screen)
                 elif self.state == "playing":
                     self._draw(pygame, screen, title_font, info_font)
                 elif self.state == "instructions":
@@ -244,8 +254,24 @@ class MazeViewer:
             index = (self._level_index - 1) % len(self._mazes)
             self._change_level(index)
             return True
-
-        if key in moves:
+        elif key == pygame.K_p and self.state == "playing":
+            self.last_direction = self.player.direction
+            self.player.direction = None
+            self.pause_start = pygame.time.get_ticks()
+            self.game_state = "pause"
+            return True
+        elif key == pygame.K_1 and self.game_state == "pause":
+            self.pause_total_time += pygame.time.get_ticks() - self.pause_start
+            self.game_state = "playing"
+            self.player.direction = self.last_direction
+            return True
+        elif key == pygame.K_2 and self.game_state == "pause":
+            self._change_level(0)
+            self.player.score = 0
+            self.game_state = "playing"
+            self.state = "menu"
+            return True
+        if key in moves and self.game_state == "playing":
             self.player.direction = moves[key]
         return True
 
@@ -260,6 +286,19 @@ class MazeViewer:
         )
         rect = image.get_rect(
             center=(round(center_x), round(center_y))
+        )
+        screen.blit(image, rect)
+
+    def _draw_pause_menu(self, pygame: Any, screen: Any) -> None:
+
+        surface = pygame.Surface(
+                screen.get_size(), pygame.SRCALPHA)
+        surface.fill((0, 0, 0, 130))
+        screen.blit(surface, (0, 0))
+        image = pygame.transform.scale(self.pause_menu, (900, 200))
+        rect = image.get_rect(
+            center=(round(self.WINDOW_SIZE[0] // 2),
+                    round(self.WINDOW_SIZE[1] // 2))
         )
         screen.blit(image, rect)
 
@@ -437,9 +476,16 @@ class MazeViewer:
             self.hud,
             self.hud,
         ]
-        elapsed = (
-            pygame.time.get_ticks() - self.start_time
-        ) // 1000
+        if self.game_state == "pause":
+            elapsed = (
+                self.pause_start - self.start_time - self.pause_total_time
+            ) // 1000
+        else:
+            elapsed = (
+                pygame.time.get_ticks()
+                - self.pause_total_time
+                - self.start_time
+            ) // 1000
 
         values = [
             "",

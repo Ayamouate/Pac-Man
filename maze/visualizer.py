@@ -164,10 +164,7 @@ class MazeViewer:
                         self.super_pacgums,
                     )
                     interaction.check_pacgum()
-                    if (
-                        not self.pacgums.pacgums
-                        and not self.super_pacgums
-                    ):
+                    if not self.pacgums.pacgums:
                         if self._level_index == len(self._mazes) - 1:
                             self.state = "victory"
                         else:

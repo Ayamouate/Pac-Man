@@ -250,33 +250,32 @@ class MazeViewer:
         if key in moves:
             self.player.direction = moves[key]
         return True
+    def _draw_main_menu(self, pygame, screen):
+        cord = [(547,189), (558,360) ,(543,528),(555,700)]
+        screen.blit(self.background, (0,0))
+        center_x = self.WINDOW_SIZE[0] // 2
+        center_y = self.WINDOW_SIZE[1] // 2
 
-    def _draw_main_menu(self, pygame: Any, screen: Any) -> None:
-        screen.blit(self.background, (0, 0))
-        if self.menu_image is not None:
-            menu_image = pygame.transform.scale(
-                self.menu_image, self.WINDOW_SIZE
+        size = 800
+        image = pygame.transform.scale(
+                self.menu_image, (size, size)
             )
-            screen.blit(menu_image, (0, 0))
+        rect = image.get_rect(
+                center=(round(center_x), round(center_y))
+            )
+        screen.blit(image, rect)
+        for i in range(4):
+            font = pygame.font.Font(None, 50)
+            if i == self.selected:
+                text = font.render(self.MAIN_MENU[i], True, (255, 215, 0))
+            else:
+                text = font.render(self.MAIN_MENU[i], True, (255, 250, 205))
+            text_rect = text.get_rect(
+                    center= cord[i]
+                        
+                )
+            screen.blit(text, text_rect)
 
-        artwork_width, artwork_height = self.MENU_ARTWORK_SIZE
-        window_width, window_height = self.WINDOW_SIZE
-        menu_positions = [
-            (
-                round(x * window_width / artwork_width),
-                round(y * window_height / artwork_height),
-            )
-            for x, y in self.MENU_CARD_CENTERS
-        ]
-        font = pygame.font.Font(None, 50)
-        for index, label in enumerate(self.MAIN_MENU):
-            colour = (
-                self.MENU_SELECTED
-                if index == self.selected
-                else self.MENU_TEXT
-            )
-            text = font.render(label, True, colour)
-            screen.blit(text, text.get_rect(center=menu_positions[index]))
 
     def _draw_instructions(self, pygame: Any, screen: Any) -> None:
         screen.blit(self.background, (0, 0))

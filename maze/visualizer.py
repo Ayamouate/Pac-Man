@@ -1,7 +1,6 @@
 """Pygame display for the generated maze levels."""
 
 from __future__ import annotations
-from pathlib import Path
 from engine.pacgums import Pacgums
 from engine.interactions import InteractionManager
 from collections.abc import Mapping, Sequence
@@ -22,6 +21,7 @@ class MazeViewer:
 
     BACKGROUND = (8, 10, 24)
     WALL = (107, 66, 38)
+    FORTY_TWO_COLOR = (188, 173, 88)
     TEXT = (55, 32, 20)
     MENU_TEXT = (255, 250, 205)
     MENU_SELECTED = (255, 215, 0)
@@ -134,6 +134,9 @@ class MazeViewer:
         self.super_pacgums_image = pygame.image.load(
                 "assets/super_pacgum.png"
             ).convert_alpha()
+        self.life_icon = pygame.image.load(
+                "assets/life_icon.png"
+            ).convert_alpha()
         pygame.display.set_caption("Pac-Man Maze Viewer")
         title_font = pygame.font.Font(None, 32)
         info_font = pygame.font.Font(None, 24)
@@ -171,8 +174,8 @@ class MazeViewer:
                     self._draw(pygame, screen, title_font, info_font)
                 elif self.state == "instructions":
                     self._instructions(pygame, screen)
-                elif self.state == "highscores":
-                    self._draw_highscores(pygame, screen)
+                # elif self.state == "highscores":
+                #     self._draw_highscores(pygame, screen)
                 pygame.display.flip()
                 clock.tick(60)
         finally:
@@ -361,9 +364,14 @@ class MazeViewer:
                 top = origin_y + y * cell_size
                 floor_surface = pygame.Surface(
                     (cell_size, cell_size), pygame.SRCALPHA)
-                floor_surface.fill((230, 210, 180, 180))
-                screen.blit(floor_surface, (left, top))
                 walls = maze.maze[y][x]
+                floor_color = (
+                    self.FORTY_TWO_COLOR
+                    if walls == 15
+                    else (230, 210, 180, 180)
+                )
+                floor_surface.fill(floor_color)
+                screen.blit(floor_surface, (left, top))
                 if walls & 1:
                     self._draw_wall(
                         pygame, screen, left, top, left + cell_size, top
@@ -425,7 +433,7 @@ class MazeViewer:
         ) // 1000
 
         values = [
-            f"Lives: {self.player.lives}",
+            "",
             f"Score: {self.player.score}",
             f"Level: {self._level_index + 1}",
             f"Time: {elapsed}"
@@ -452,6 +460,37 @@ class MazeViewer:
             x = start_x + i * (panel_width + gap)
 
             screen.blit(panel, (x, y))
+
+            # life icon logic
+            if i == 0:
+                label = font.render("Lives:", True, self.TEXT)
+                icon_size = 30
+                icon_gap = 4
+                life_count = max(0, self.player.lives)
+                icons_width = (
+                    life_count * icon_size
+                    + max(0, life_count - 1) * icon_gap
+                )
+                content_width = label.get_width() + 8 + icons_width
+                content_x = x + (panel_width - content_width) // 2
+                label_rect = label.get_rect(
+                    midleft=(content_x, y + panel_height // 2)
+                )
+                screen.blit(label, label_rect)
+
+                for life in range(life_count):
+                    icon = pygame.transform.smoothscale(
+                        self.life_icon, (icon_size, icon_size)
+                    )
+                    icon_rect = icon.get_rect(
+                        midleft=(
+                            label_rect.right + 8
+                            + life * (icon_size + icon_gap),
+                            y + panel_height // 2,
+                        )
+                    )
+                    screen.blit(icon, icon_rect)
+                continue
 
             text = font.render(values[i], True, self.TEXT)
 

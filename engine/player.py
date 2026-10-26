@@ -19,7 +19,7 @@ class Player:
         self.pacgums_points = pacgums_points
         self.lives = lives
         self.score = 0
-        self.direction = ""
+        self.direction = None
         self.current_pos = self.start_position
 
     def can_move(self, direction: str, maze: Any) -> bool:

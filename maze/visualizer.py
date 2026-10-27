@@ -7,6 +7,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 from engine.player import Player
 from maze.maze_loader import Loader
+from engine.ghost import Ghost
 
 
 Level = Mapping[str, Any]
@@ -38,10 +39,21 @@ class MazeViewer:
             )
         if not levels:
             raise ValueError("At least one maze level is required")
+        self.blue_ghost: Any = None
+        self.pink_ghost: Any = None
+        self.red_ghost: Any = None
+        self.orange_ghost: Any = None
         self._levels = levels
         self._mazes = mazes
         self._level_index = 0
         self.maze = self._mazes[self._level_index]
+        self.ghosts_positions = self._get_ghost_spawn_positions(self.maze)
+        self.ghosts = [
+        Ghost("red", None,self.ghosts_positions[0], self.ghosts_positions[0], "chase"),
+        Ghost("pink", None, self.ghosts_positions[1], self.ghosts_positions[1], "chase"),
+        Ghost("blue", None, self.ghosts_positions[2], self.ghosts_positions[2], "chase"),
+        Ghost("orange", None, self.ghosts_positions[3],  self.ghosts_positions[3], "chase"),
+]
         self.player = Player(
             (
                 len(self.maze.maze[0]) // 2,
@@ -60,10 +72,6 @@ class MazeViewer:
         self.background: Any = None
         self.wall_h: Any = None
         self.wall_v: Any = None
-        self.blue_ghost: Any = None
-        self.pink_ghost: Any = None
-        self.red_ghost: Any = None
-        self.orange_ghost: Any = None
         self.hud: Any = None
         self.life_icon: Any = None
         self.menu_image: Any = None
@@ -76,6 +84,9 @@ class MazeViewer:
         self.pause_start = 0
         self.pause_total_time = 0
         self.last_direction: str | None = None
+    
+
+
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -179,8 +190,7 @@ class MazeViewer:
                     last_move = now
 
                     # ghost collision
-                    ghost_positions = self._get_ghost_positions(maze)
-                    if interaction.check_ghost_collision(ghost_positions):
+                    if interaction.check_ghost_collision(self.ghosts_positions):
                         if not self.player.is_alive():
                             self.state = "over"
 
@@ -376,7 +386,7 @@ class MazeViewer:
             center_x = origin_x + x * cell_size + cell_size // 2
             center_y = origin_y + y * cell_size + cell_size // 2
             screen.blit(image, (center_x - size // 2, center_y - size // 2))
-        self._draw_ghosts(pygame, screen, cell_size, origin_x, origin_y, maze)
+        self._draw_ghosts(pygame, screen, cell_size, origin_x, origin_y)
         self._draw_player(pygame, screen, cell_size, origin_x, origin_y)
         self._draw_menu(pygame, screen)
 
@@ -605,6 +615,7 @@ class MazeViewer:
 
     def _inside(self, maze: Any, x: int, y: int) -> bool:
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
+    
 
     def _draw_ghosts(
         self,
@@ -613,10 +624,28 @@ class MazeViewer:
         cell_size: int,
         origin_x: int,
         origin_y: int,
-        maze: Any,
+
     ) -> None:
+        size = int(cell_size * 0.8)
+        for ghost in self.ghosts:
+            color = ghost.color
+            cur_pos = ghost.current_pos
+            center_x = origin_x + cur_pos[0] * cell_size + cell_size // 2
+            center_y = origin_y + cur_pos[1]* cell_size + cell_size // 2
+            if color == "red" :
+                sprite = self.red_ghost
+            elif color == "pink":
+                sprite = self.pink_ghost
+            elif color == "orange" :
+                sprite = self.orange_ghost
+            elif color == "blue":
+                sprite = self.blue_ghost
+
+            image = pygame.transform.scale(sprite, (size, size))
+            screen.blit(image, (center_x - size // 2, center_y - size // 2))
+    def _get_ghost_spawn_positions(self, maze: Any) -> list[tuple[int, int]]:
         N, E, S, W = 1, 2, 4, 8
-        ghosts = []
+        ghosts_positions = []
 
         def cell(x: int, y: int) -> Any:
             return maze.maze[y][x]
@@ -630,7 +659,7 @@ class MazeViewer:
             x_red, y_red = x1, y1 + 1
         else:
             x_red, y_red = x1 + 1, y1 + 1
-        ghosts.append((x_red, y_red, self.red_ghost))
+        ghosts_positions.append((x_red, y_red))
 
         x2, y2 = (width - 1, 0)
         if self._inside(maze, x2 - 1, y2) and not cell(x2, y2) & W:
@@ -639,7 +668,7 @@ class MazeViewer:
             x_pink, y_pink = x2, y2 + 1
         else:
             x_pink, y_pink = x2 - 1, y2 + 1
-        ghosts.append((x_pink, y_pink, self.pink_ghost))
+        ghosts_positions.append((x_pink, y_pink))
 
         x3, y3 = (width-1, height - 1)
         if self._inside(maze, x3 - 1, y3) and not cell(x3, y3) & W:
@@ -648,7 +677,7 @@ class MazeViewer:
             x_blue, y_blue = x3, y3 - 1
         else:
             x_blue, y_blue = x3 - 1, y3 - 1
-        ghosts.append((x_blue, y_blue, self.blue_ghost))
+        ghosts_positions.append((x_blue, y_blue))
 
         x4, y4 = 0, height-1
         if self._inside(maze, x4 + 1, y4) and not cell(x4, y4) & E:
@@ -657,51 +686,5 @@ class MazeViewer:
             x_orange, y_orange = x4, y4 - 1
         else:
             x_orange, y_orange = x4 + 1, y4 - 1
-        ghosts.append((x_orange, y_orange, self.orange_ghost))
-
-        size = int(cell_size * 0.8)
-        for x, y, sprite in ghosts:
-            center_x = origin_x + x * cell_size + cell_size // 2
-            center_y = origin_y + y * cell_size + cell_size // 2
-            image = pygame.transform.scale(sprite, (size, size))
-            screen.blit(image, (center_x - size // 2, center_y - size // 2))
-
-    def _get_ghost_positions(self, maze: Any) -> set[tuple[int, int]]:
-        N, E, S, W = 1, 2, 4, 8
-
-        def cell(x: int, y: int) -> int:
-            return int(maze.maze[y][x])
-
-        width = len(maze.maze[0])
-        height = len(maze.maze)
-
-        ghosts = set()
-
-        # Red ghost
-        if self._inside(maze, 1, 0) and not cell(0, 0) & E:
-            ghosts.add((1, 0))
-        elif self._inside(maze, 0, 1) and not cell(0, 0) & S:
-            ghosts.add((0, 1))
-
-        # Pink ghost
-        x, y = width - 1, 0
-        if self._inside(maze, x - 1, y) and not cell(x, y) & W:
-            ghosts.add((x - 1, y))
-        elif self._inside(maze, x, y + 1) and not cell(x, y) & S:
-            ghosts.add((x, y + 1))
-
-        # Blue ghost
-        x, y = width - 1, height - 1
-        if self._inside(maze, x - 1, y) and not cell(x, y) & W:
-            ghosts.add((x - 1, y))
-        elif self._inside(maze, x, y - 1) and not cell(x, y) & N:
-            ghosts.add((x, y - 1))
-
-        # Orange ghost
-        x, y = 0, height - 1
-        if self._inside(maze, x + 1, y) and not cell(x, y) & E:
-            ghosts.add((x + 1, y))
-        elif self._inside(maze, x, y - 1) and not cell(x, y) & N:
-            ghosts.add((x, y - 1))
-
-        return ghosts
+        ghosts_positions.append((x_orange, y_orange))
+        return ghosts_positions

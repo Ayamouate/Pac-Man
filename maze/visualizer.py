@@ -279,6 +279,7 @@ class MazeViewer:
             return True
         elif key == pygame.K_2 and self.game_state == "pause":
             self._change_level(0)
+            self.player.lives = 3
             self.player.score = 0
             self.game_state = "playing"
             self.state = "menu"

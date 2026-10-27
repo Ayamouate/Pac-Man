@@ -42,12 +42,14 @@ class MazeViewer:
         self._mazes = mazes
         self._level_index = 0
         self.maze = self._mazes[self._level_index]
+        self.starting_lives = data["lives"]
+        self.level_max_time = max(0, data["level_max_time"])
         self.player = Player(
             (
                 len(self.maze.maze[0]) // 2,
                 len(self.maze.maze) // 2,
             ),
-            data["lives"],
+            self.starting_lives,
             data["points_per_super_pacgum"],
             data["points_per_pacgum"],
         )
@@ -68,6 +70,7 @@ class MazeViewer:
         self.life_icon: Any = None
         self.menu_image: Any = None
         self.pause_menu: Any = None
+        self.game_over_image: Any = None
         self.instruction_image: Any = None
         self.start_time = 0
         self.state = "menu"
@@ -76,6 +79,7 @@ class MazeViewer:
         self.pause_start = 0
         self.pause_total_time = 0
         self.last_direction: str | None = None
+        self.game_over_reason: str | None = None
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -129,6 +133,9 @@ class MazeViewer:
         self.pause_menu = pygame.image.load(
                 "assets/pause_menu.png"
             ).convert_alpha()
+        self.game_over_image = pygame.image.load(
+                "assets/game_over.png"
+            ).convert_alpha()
         try:
             self.player_image = pygame.image.load(
                 "assets/player.png"
@@ -155,6 +162,15 @@ class MazeViewer:
         running = True
         try:
             while running:
+                now = pygame.time.get_ticks()
+                if (
+                    self.state == "playing"
+                    and self.game_state == "playing"
+                    and self._timer_expired(now)
+                ):
+                    self.state = "over"
+                    self.game_over_reason = "time"
+
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
@@ -162,7 +178,11 @@ class MazeViewer:
                         running = self._handle_key(pygame, event.key)
                 now = pygame.time.get_ticks()
 
-                if self.state == "playing" and now - last_move >= move_delay:
+                if (
+                    self.state == "playing"
+                    and self.game_state == "playing"
+                    and now - last_move >= move_delay
+                ):
                     maze = self._mazes[self._level_index]
                     self.player.move(maze)
                     interaction = InteractionManager(
@@ -171,17 +191,28 @@ class MazeViewer:
                         self.super_pacgums,
                     )
                     interaction.check_pacgum()
-                    if not self.pacgums.pacgums:
+                    level_changed = False
+                    if not self.pacgums.pacgums and not self.super_pacgums:
                         if self._level_index == len(self._mazes) - 1:
                             self.state = "victory"
                         else:
-                            self._change_level(self._level_index + 1)
+                            self._change_level(
+                                self._level_index + 1, now=now
+                            )
+                            level_changed = True
                     last_move = now
 
                     # ghost collision
-                    ghost_positions = self._get_ghost_positions(maze)
-                    if interaction.check_ghost_collision(ghost_positions):
+                    if self.state == "playing" and not level_changed:
+                        ghost_positions = self._get_ghost_positions(maze)
+                        collided = interaction.check_ghost_collision(
+                            ghost_positions, current_time=now / 1000.0
+                        )
+                    else:
+                        collided = False
+                    if collided:
                         if not self.player.is_alive():
+                            self.game_over_reason = "lives"
                             self.state = "over"
 
                 if self.state == "menu":
@@ -191,6 +222,12 @@ class MazeViewer:
                     self._draw_pause_menu(pygame, screen)
                 elif self.state == "playing":
                     self._draw(pygame, screen, title_font, info_font)
+                elif self.state == "over":
+                    self._draw(pygame, screen, title_font, info_font)
+                    self._draw_game_over(pygame, screen)
+                elif self.state == "victory":
+                    self._draw(pygame, screen, title_font, info_font)
+                    self._draw_victory(pygame, screen)
                 elif self.state == "instructions":
                     self._instructions(pygame, screen)
                 # elif self.state == "highscores":
@@ -219,8 +256,8 @@ class MazeViewer:
                 self.selected = (self.selected + 1) % 4
             elif key == pygame.K_RETURN:
                 if self.selected == 0:
+                    self._reset_game(pygame)
                     self.state = "playing"
-                    self.start_time = pygame.time.get_ticks()
                 elif self.selected == 1:
                     self.state = "highscores"
                 elif self.selected == 2:
@@ -228,6 +265,25 @@ class MazeViewer:
                 else:
                     return False
             elif key in (pygame.K_ESCAPE, pygame.K_q):
+                return False
+            return True
+
+        if self.state == "over":
+            if key in (pygame.K_RETURN, pygame.K_ESCAPE):
+                self._reset_game(pygame)
+                self.state = "menu"
+            elif key == pygame.K_q:
+                return False
+            return True
+
+        if self.state == "victory":
+            if key == pygame.K_RETURN:
+                self._reset_game(pygame)
+                self.state = "playing"
+            elif key == pygame.K_ESCAPE:
+                self._reset_game(pygame)
+                self.state = "menu"
+            elif key == pygame.K_q:
                 return False
             return True
 
@@ -248,11 +304,11 @@ class MazeViewer:
             return False
         if key == pygame.K_n:
             index = (self._level_index + 1) % len(self._mazes)
-            self._change_level(index)
+            self._change_level(index, now=pygame.time.get_ticks())
             return True
         elif key == pygame.K_b:
             index = (self._level_index - 1) % len(self._mazes)
-            self._change_level(index)
+            self._change_level(index, now=pygame.time.get_ticks())
             return True
         elif key == pygame.K_p and self.state == "playing":
             self.last_direction = self.player.direction
@@ -301,6 +357,69 @@ class MazeViewer:
                     round(self.WINDOW_SIZE[1] // 2))
         )
         screen.blit(image, rect)
+
+    def _draw_game_over(self, pygame: Any, screen: Any) -> None:
+        surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        surface.fill((0, 0, 0, 160))
+        screen.blit(surface, (0, 0))
+
+        if self.game_over_reason == "time":
+            panel = pygame.Surface((900, 260), pygame.SRCALPHA)
+            panel.fill((57, 29, 29, 240))
+            panel_rect = panel.get_rect(
+                center=(self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] // 2)
+            )
+            screen.blit(panel, panel_rect)
+            title_font = pygame.font.Font(None, 72)
+            body_font = pygame.font.Font(None, 34)
+            title = title_font.render("TIME'S UP", True, self.MENU_SELECTED)
+            body = body_font.render(
+                "Press ENTER to return to the main menu",
+                True,
+                self.MENU_TEXT,
+            )
+            screen.blit(title, title.get_rect(center=(550, 410)))
+            screen.blit(body, body.get_rect(center=(550, 500)))
+            return
+
+        image = pygame.transform.smoothscale(self.game_over_image, (900, 200))
+        rect = image.get_rect(
+            center=(self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] // 2)
+        )
+        screen.blit(image, rect)
+
+    def _draw_victory(self, pygame: Any, screen: Any) -> None:
+        """Draw the final completion screen after every level is cleared."""
+
+        surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        surface.fill((0, 0, 0, 175))
+        screen.blit(surface, (0, 0))
+
+        panel = pygame.Surface((900, 330), pygame.SRCALPHA)
+        panel.fill((25, 55, 48, 245))
+        panel_rect = panel.get_rect(
+            center=(self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] // 2)
+        )
+        screen.blit(panel, panel_rect)
+
+        title_font = pygame.font.Font(None, 82)
+        body_font = pygame.font.Font(None, 36)
+        title = title_font.render("VICTORY!", True, self.MENU_SELECTED)
+        score = body_font.render(
+            f"All {len(self._mazes)} levels cleared  -  Score: "
+            f"{self.player.score}",
+            True,
+            self.MENU_TEXT,
+        )
+        hint = body_font.render(
+            "Press ENTER to play again or ESC for the menu",
+            True,
+            self.MUTED_TEXT,
+        )
+        center_x = self.WINDOW_SIZE[0] // 2
+        screen.blit(title, title.get_rect(center=(center_x, 365)))
+        screen.blit(score, score.get_rect(center=(center_x, 455)))
+        screen.blit(hint, hint.get_rect(center=(center_x, 525)))
 
     def _draw_main_menu(self, pygame: Any, screen: Any) -> None:
         cord = [(547, 189), (558, 360), (543, 528), (555, 700)]
@@ -476,22 +595,18 @@ class MazeViewer:
             self.hud,
             self.hud,
         ]
-        if self.game_state == "pause":
-            elapsed = (
-                self.pause_start - self.start_time - self.pause_total_time
-            ) // 1000
-        else:
-            elapsed = (
-                pygame.time.get_ticks()
-                - self.pause_total_time
-                - self.start_time
-            ) // 1000
+        now = (
+            self.pause_start
+            if self.game_state == "pause"
+            else pygame.time.get_ticks()
+        )
+        elapsed = min(self._elapsed_seconds(now), self.level_max_time)
 
         values = [
             "",
             f"Score: {self.player.score}",
             f"Level: {self._level_index + 1}",
-            f"Time: {elapsed}"
+            f"Time: {elapsed}/{self.level_max_time}"
         ]
 
         font = pygame.font.Font(None, 28)
@@ -558,16 +673,50 @@ class MazeViewer:
 
             screen.blit(text, text_rect)
 
-    def _change_level(self, index: int) -> None:
+    def _reset_game(self, pygame: Any) -> None:
+        self._change_level(0)
+        self.player.lives = self.starting_lives
+        self.player.score = 0
+        self.player.direction = None
+        self.game_state = "playing"
+        self.pause_start = 0
+        self.pause_total_time = 0
+        self.last_direction = None
+        self.game_over_reason = None
+        self.player.clear_respawn_protection()
+        self.start_time = pygame.time.get_ticks()
+
+    def _elapsed_seconds(self, now: int) -> int:
+        active_milliseconds = max(
+            0, now - self.start_time - self.pause_total_time
+        )
+        return active_milliseconds // 1000
+
+    def _timer_expired(self, now: int) -> bool:
+        return bool(
+            now - self.start_time - self.pause_total_time
+            >= self.level_max_time * 1000
+        )
+
+    def _change_level(self, index: int, now: int | None = None) -> None:
         self._level_index = index
         self.maze = self._mazes[index]
         self.player.start_position = (
             len(self.maze.maze[0]) // 2, len(self.maze.maze) // 2)
         self.player.current_pos = self.player.start_position
-        self.player.direction = ""
+        self.player.direction = None
+        self.player.clear_respawn_protection()
 
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums
+        pause_start = (
+            now if now is not None and self.game_state == "pause" else 0
+        )
+        self.pause_start = pause_start
+        self.pause_total_time = 0
+        self.last_direction = None
+        if now is not None:
+            self.start_time = now
 
     def _draw_player(
         self,
@@ -583,12 +732,17 @@ class MazeViewer:
         center_y = origin_y + y * cell_size + cell_size // 2
 
         radius = max(3, cell_size // 3)
+        protected = self.player.is_respawn_protected(
+            pygame.time.get_ticks() / 1000.0
+        )
 
         if self.player_image is not None:
             size = int(cell_size * 0.8)
             image = pygame.transform.scale(
                 self.player_image, (size, size)
             )
+            if protected:
+                image.set_alpha(150)
             rect = image.get_rect(
                 center=(round(center_x), round(center_y))
             )
@@ -596,7 +750,7 @@ class MazeViewer:
         else:
             pygame.draw.circle(
                 screen,
-                (255, 220, 0),
+                (255, 255, 255) if protected else (255, 220, 0),
                 (round(center_x), round(center_y)),
                 radius,
             )

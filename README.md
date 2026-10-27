@@ -12,8 +12,15 @@ python3 pac-man.py config.json
 ```
 
 The viewer opens with a main menu. Use Up/Down and Enter to select an option.
-During the game, use Arrow keys or WASD to move, N/P to change levels, Esc to
-return to the menu, and Q to quit.
+During the game, use Arrow keys or WASD to move, N/B to change levels, Esc to
+return to the menu, and Q to quit. Press P to pause; the level timer does not
+run while paused.
+
+Each level must be completed before `level_max_time` seconds elapse. Running
+out of time ends the game. Losing a life respawns Pac-Man at the level start
+with three seconds of ghost-collision protection. Clearing every regular and
+super pac-gum on the final level displays the victory screen; press Enter to
+play again or Esc to return to the menu.
 
 ## Configuration
 

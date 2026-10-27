@@ -43,7 +43,7 @@ are ignored. Missing or incorrectly typed top-level values use these defaults:
 }
 ```
 
-`levels` is normalized to ten entries. Each entry contains an integer
-`width` and `height`; invalid width or height values use `15`. Unknown keys
-are ignored.
+`levels` is normalized to at least ten entries; additional configured levels
+are retained. Each entry contains an integer `width` and `height`; invalid
+width or height values use `15`. Unknown keys are ignored.
 

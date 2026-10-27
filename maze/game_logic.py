@@ -93,11 +93,11 @@ class GameMixin:
             return False
         if key == pygame.K_n:
             index = (self._level_index + 1) % len(self._mazes)
-            self._change_level(index, now=pygame.time.get_ticks())
+            self._change_level(index)
             return True
         elif key == pygame.K_b:
             index = (self._level_index - 1) % len(self._mazes)
-            self._change_level(index, now=pygame.time.get_ticks())
+            self._change_level(index)
             return True
         elif key == pygame.K_p and self.state == "playing":
             self.last_direction = self.player.direction

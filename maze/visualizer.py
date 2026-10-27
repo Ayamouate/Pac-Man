@@ -40,12 +40,16 @@ class MazeViewer(GameMixin, ScreensMixin):
             )
         if not levels:
             raise ValueError("At least one maze level is required")
+        self.starting_lives: int = data["lives"]
+        self.level_max_time: int = max(0, data["level_max_time"])
+        self.blue_ghost: Any = None
+        self.pink_ghost: Any = None
+        self.red_ghost: Any = None
+        self.orange_ghost: Any = None
         self._levels = levels
         self._mazes = mazes
         self._level_index = 0
         self.maze = self._mazes[self._level_index]
-        self.starting_lives = data["lives"]
-        self.level_max_time = max(0, data["level_max_time"])
         self.player = Player(
             (
                 len(self.maze.maze[0]) // 2,
@@ -64,10 +68,6 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.background: Any = None
         self.wall_h: Any = None
         self.wall_v: Any = None
-        self.blue_ghost: Any = None
-        self.pink_ghost: Any = None
-        self.red_ghost: Any = None
-        self.orange_ghost: Any = None
         self.hud: Any = None
         self.life_icon: Any = None
         self.menu_image: Any = None
@@ -82,6 +82,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.pause_total_time = 0
         self.last_direction: str | None = None
         self.game_over_reason: str | None = None
+        self.ghosts: list[Any] = []
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -205,14 +206,13 @@ class MazeViewer(GameMixin, ScreensMixin):
                     last_move = now
 
                     # ghost collision
-                    if self.state == "playing" and not level_changed:
-                        ghost_positions = self._get_ghost_positions(maze)
-                        collided = interaction.check_ghost_collision(
-                            ghost_positions, current_time=now / 1000.0
-                        )
-                    else:
-                        collided = False
-                    if collided:
+                    ghost_positions = set(
+                        self._get_ghost_spawn_positions(maze)
+                    )
+                    if (
+                        not level_changed
+                        and interaction.check_ghost_collision(ghost_positions)
+                    ):
                         if not self.player.is_alive():
                             self.game_over_reason = "lives"
                             self.state = "over"
@@ -267,7 +267,9 @@ class MazeViewer(GameMixin, ScreensMixin):
             center_x = origin_x + x * cell_size + cell_size // 2
             center_y = origin_y + y * cell_size + cell_size // 2
             screen.blit(image, (center_x - size // 2, center_y - size // 2))
-        self._draw_ghosts(pygame, screen, cell_size, origin_x, origin_y, maze)
+        self._draw_ghosts(
+            pygame, screen, cell_size, origin_x, origin_y, maze
+        )
         self._draw_player(pygame, screen, cell_size, origin_x, origin_y)
         self._draw_menu(pygame, screen)
 
@@ -461,9 +463,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         center_y = origin_y + y * cell_size + cell_size // 2
 
         radius = max(3, cell_size // 3)
-        protected = self.player.is_respawn_protected(
-            pygame.time.get_ticks() / 1000.0
-        )
+        protected = self.player.is_respawn_protected()
 
         if self.player_image is not None:
             size = int(cell_size * 0.8)
@@ -496,8 +496,28 @@ class MazeViewer(GameMixin, ScreensMixin):
         origin_y: int,
         maze: Any,
     ) -> None:
+        size = int(cell_size * 0.8)
+        sprites = (
+            self.red_ghost,
+            self.pink_ghost,
+            self.blue_ghost,
+            self.orange_ghost,
+        )
+        for (x, y), sprite in zip(
+            self._get_ghost_spawn_positions(maze), sprites
+        ):
+            center_x = origin_x + x * cell_size + cell_size // 2
+            center_y = origin_y + y * cell_size + cell_size // 2
+            image = pygame.transform.scale(sprite, (size, size))
+            screen.blit(
+                image, (center_x - size // 2, center_y - size // 2)
+            )
+
+    def _get_ghost_spawn_positions(
+        self, maze: Any
+    ) -> list[tuple[int, int]]:
         N, E, S, W = 1, 2, 4, 8
-        ghosts = []
+        ghosts_positions: list[tuple[int, int]] = []
 
         def cell(x: int, y: int) -> Any:
             return maze.maze[y][x]
@@ -511,7 +531,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             x_red, y_red = x1, y1 + 1
         else:
             x_red, y_red = x1 + 1, y1 + 1
-        ghosts.append((x_red, y_red, self.red_ghost))
+        ghosts_positions.append((x_red, y_red))
 
         x2, y2 = (width - 1, 0)
         if self._inside(maze, x2 - 1, y2) and not cell(x2, y2) & W:
@@ -520,7 +540,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             x_pink, y_pink = x2, y2 + 1
         else:
             x_pink, y_pink = x2 - 1, y2 + 1
-        ghosts.append((x_pink, y_pink, self.pink_ghost))
+        ghosts_positions.append((x_pink, y_pink))
 
         x3, y3 = (width-1, height - 1)
         if self._inside(maze, x3 - 1, y3) and not cell(x3, y3) & W:
@@ -529,7 +549,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             x_blue, y_blue = x3, y3 - 1
         else:
             x_blue, y_blue = x3 - 1, y3 - 1
-        ghosts.append((x_blue, y_blue, self.blue_ghost))
+        ghosts_positions.append((x_blue, y_blue))
 
         x4, y4 = 0, height-1
         if self._inside(maze, x4 + 1, y4) and not cell(x4, y4) & E:
@@ -538,51 +558,5 @@ class MazeViewer(GameMixin, ScreensMixin):
             x_orange, y_orange = x4, y4 - 1
         else:
             x_orange, y_orange = x4 + 1, y4 - 1
-        ghosts.append((x_orange, y_orange, self.orange_ghost))
-
-        size = int(cell_size * 0.8)
-        for x, y, sprite in ghosts:
-            center_x = origin_x + x * cell_size + cell_size // 2
-            center_y = origin_y + y * cell_size + cell_size // 2
-            image = pygame.transform.scale(sprite, (size, size))
-            screen.blit(image, (center_x - size // 2, center_y - size // 2))
-
-    def _get_ghost_positions(self, maze: Any) -> set[tuple[int, int]]:
-        N, E, S, W = 1, 2, 4, 8
-
-        def cell(x: int, y: int) -> int:
-            return int(maze.maze[y][x])
-
-        width = len(maze.maze[0])
-        height = len(maze.maze)
-
-        ghosts = set()
-
-        # Red ghost
-        if self._inside(maze, 1, 0) and not cell(0, 0) & E:
-            ghosts.add((1, 0))
-        elif self._inside(maze, 0, 1) and not cell(0, 0) & S:
-            ghosts.add((0, 1))
-
-        # Pink ghost
-        x, y = width - 1, 0
-        if self._inside(maze, x - 1, y) and not cell(x, y) & W:
-            ghosts.add((x - 1, y))
-        elif self._inside(maze, x, y + 1) and not cell(x, y) & S:
-            ghosts.add((x, y + 1))
-
-        # Blue ghost
-        x, y = width - 1, height - 1
-        if self._inside(maze, x - 1, y) and not cell(x, y) & W:
-            ghosts.add((x - 1, y))
-        elif self._inside(maze, x, y - 1) and not cell(x, y) & N:
-            ghosts.add((x, y - 1))
-
-        # Orange ghost
-        x, y = 0, height - 1
-        if self._inside(maze, x + 1, y) and not cell(x, y) & E:
-            ghosts.add((x + 1, y))
-        elif self._inside(maze, x, y - 1) and not cell(x, y) & N:
-            ghosts.add((x, y - 1))
-
-        return ghosts
+        ghosts_positions.append((x_orange, y_orange))
+        return ghosts_positions

@@ -36,7 +36,7 @@ def validate_levels(levels: list) -> list:
 
     default_level = {"width": 15, "height": 15}
     valide_levels = []
-    for level in levels[:10]:
+    for level in levels:
         if type(level) is not dict:
             valide_levels.append(default_level.copy())
             continue

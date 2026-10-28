@@ -13,6 +13,7 @@ class ScreensMixin:
     MENU_TEXT: tuple[int, int, int]
     MUTED_TEXT: tuple[int, int, int]
     background: Any
+    video_background: Any
     instruction_image: Any
     pause_menu: Any
     game_over_image: Any
@@ -22,8 +23,15 @@ class ScreensMixin:
     player: Any
     selected: int
 
+    def _draw_background(self, pygame: Any, screen: Any) -> None:
+        if (
+            self.video_background is None
+            or not self.video_background.draw(screen)
+        ):
+            screen.blit(self.background, (0, 0))
+
     def _instructions(self, pygame: Any, screen: Any) -> None:
-        screen.blit(self.background, (0, 0))
+        self._draw_background(pygame, screen)
         center_x = self.WINDOW_SIZE[0] // 2
         center_y = self.WINDOW_SIZE[1] // 2
 
@@ -114,7 +122,7 @@ class ScreensMixin:
 
     def _draw_main_menu(self, pygame: Any, screen: Any) -> None:
         cord = [(547, 189), (558, 360), (543, 528), (555, 700)]
-        screen.blit(self.background, (0, 0))
+        self._draw_background(pygame, screen)
         center_x = self.WINDOW_SIZE[0] // 2
         center_y = self.WINDOW_SIZE[1] // 2
 

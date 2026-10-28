@@ -16,6 +16,10 @@ During the game, use Arrow keys or WASD to move, N/B to change levels, Esc to
 return to the menu, and Q to quit. Press P to pause; the level timer does not
 run while paused.
 
+The `assets/tree_wind.mp4` file is played in a loop as the background. Run
+`make install` to install the bundled FFmpeg helper used for playback. If
+FFmpeg is unavailable, the viewer falls back to `assets/Bg.jpeg`.
+
 Each level must be completed before `level_max_time` seconds elapse. Running
 out of time ends the game. Losing a life respawns Pac-Man at the level start
 with three seconds of ghost-collision protection. Clearing every regular and

@@ -1,6 +1,7 @@
 """Pygame display for the generated maze levels."""
 
 from __future__ import annotations
+from pathlib import Path
 from engine.pacgums import Pacgums
 from engine.interactions import InteractionManager
 from collections.abc import Mapping, Sequence
@@ -9,6 +10,7 @@ from engine.player import Player
 from maze.maze_loader import Loader
 from maze.game_logic import GameMixin
 from maze.screens import ScreensMixin
+from maze.video_background import VideoBackground
 
 
 Level = Mapping[str, Any]
@@ -66,6 +68,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.player_image: Any = None
         self.super_pacgums_image: Any = None
         self.background: Any = None
+        self.video_background: Any = None
         self.wall_h: Any = None
         self.wall_v: Any = None
         self.hud: Any = None
@@ -106,6 +109,14 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.background = pygame.transform.scale(
             self.background, self.WINDOW_SIZE
         )
+        self.video_background = VideoBackground(
+            pygame,
+            Path(__file__).resolve().parent.parent
+            / "assets"
+            / "tree_wind.mp4",
+            self.WINDOW_SIZE,
+        )
+        self.video_background.start()
         self.wall_h = pygame.image.load(
                 "assets/wall_h.png"
             ).convert_alpha()
@@ -237,12 +248,14 @@ class MazeViewer(GameMixin, ScreensMixin):
                 pygame.display.flip()
                 clock.tick(60)
         finally:
+            if self.video_background is not None:
+                self.video_background.stop()
             pygame.quit()
 
     def _draw(
         self, pygame: Any, screen: Any, title_font: Any, info_font: Any
     ) -> None:
-        screen.blit(self.background, (0, 0))
+        self._draw_background(pygame, screen)
         maze = self._mazes[self._level_index]
         level = self._levels[self._level_index]
         width = level["width"]

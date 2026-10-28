@@ -3,7 +3,7 @@ MYPY_CACHE_DIR ?= /tmp/pac-man-mypy-cache
 .PHONY: install run debug clean lint
 
 install:
-	pip install pygame imageio-ffmpeg flake8 mypy
+	pip install pygame  flake8 mypy
 
 run:
 	python3 pac-man.py config.json

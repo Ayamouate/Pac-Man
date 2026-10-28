@@ -10,7 +10,7 @@ from engine.player import Player
 from maze.maze_loader import Loader
 from maze.game_logic import GameMixin
 from maze.screens import ScreensMixin
-from maze.video_background import VideoBackground
+from engine.ghost import Ghost
 
 
 Level = Mapping[str, Any]
@@ -85,7 +85,12 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.pause_total_time = 0
         self.last_direction: str | None = None
         self.game_over_reason: str | None = None
-        self.ghosts: list[Any] = []
+        self.ghosts_positions = self._get_ghost_spawn_positions(self.maze)
+        self.ghosts = [
+            Ghost("red", None,self.ghosts_positions[0], self.ghosts_positions[0], "chase"),
+            Ghost("pink", None, self.ghosts_positions[1], self.ghosts_positions[1], "chase"),
+            Ghost("blue", None, self.ghosts_positions[2], self.ghosts_positions[2], "chase"),
+            Ghost("orange", None, self.ghosts_positions[3],  self.ghosts_positions[3], "chase")]
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -109,14 +114,6 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.background = pygame.transform.scale(
             self.background, self.WINDOW_SIZE
         )
-        self.video_background = VideoBackground(
-            pygame,
-            Path(__file__).resolve().parent.parent
-            / "assets"
-            / "tree_wind.mp4",
-            self.WINDOW_SIZE,
-        )
-        self.video_background.start()
         self.wall_h = pygame.image.load(
                 "assets/wall_h.png"
             ).convert_alpha()
@@ -174,6 +171,7 @@ class MazeViewer(GameMixin, ScreensMixin):
 
         move_delay = 180
         running = True
+
         try:
             while running:
                 now = pygame.time.get_ticks()
@@ -190,7 +188,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         running = self._handle_key(pygame, event.key)
-                now = pygame.time.get_ticks()
+
 
                 if (
                     self.state == "playing"
@@ -206,7 +204,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                     )
                     interaction.check_pacgum()
                     level_changed = False
-                    if not self.pacgums.pacgums and not self.super_pacgums:
+                    if not self.pacgums.pacgums:
                         if self._level_index == len(self._mazes) - 1:
                             self.state = "victory"
                         else:
@@ -281,7 +279,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             center_y = origin_y + y * cell_size + cell_size // 2
             screen.blit(image, (center_x - size // 2, center_y - size // 2))
         self._draw_ghosts(
-            pygame, screen, cell_size, origin_x, origin_y, maze
+            pygame, screen, cell_size, origin_x, origin_y
         )
         self._draw_player(pygame, screen, cell_size, origin_x, origin_y)
         self._draw_menu(pygame, screen)
@@ -384,12 +382,16 @@ class MazeViewer(GameMixin, ScreensMixin):
             self.hud,
             self.hud,
         ]
-        now = (
-            self.pause_start
-            if self.game_state == "pause"
-            else pygame.time.get_ticks()
-        )
-        elapsed = min(self._elapsed_seconds(now), self.level_max_time)
+        if self.game_state == "pause":
+                    elapsed = (
+                        self.pause_start - self.start_time - self.pause_total_time
+                    ) // 1000
+        else:
+                    elapsed = (
+                        pygame.time.get_ticks()
+                        - self.pause_total_time
+                        - self.start_time
+                    ) // 1000
 
         values = [
             "",
@@ -476,15 +478,12 @@ class MazeViewer(GameMixin, ScreensMixin):
         center_y = origin_y + y * cell_size + cell_size // 2
 
         radius = max(3, cell_size // 3)
-        protected = self.player.is_respawn_protected()
 
         if self.player_image is not None:
             size = int(cell_size * 0.8)
             image = pygame.transform.scale(
                 self.player_image, (size, size)
             )
-            if protected:
-                image.set_alpha(150)
             rect = image.get_rect(
                 center=(round(center_x), round(center_y))
             )
@@ -492,13 +491,11 @@ class MazeViewer(GameMixin, ScreensMixin):
         else:
             pygame.draw.circle(
                 screen,
-                (255, 255, 255) if protected else (255, 220, 0),
+                (255, 220, 0),
                 (round(center_x), round(center_y)),
                 radius,
             )
 
-    def _inside(self, maze: Any, x: int, y: int) -> bool:
-        return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
 
     def _draw_ghosts(
         self,
@@ -507,24 +504,25 @@ class MazeViewer(GameMixin, ScreensMixin):
         cell_size: int,
         origin_x: int,
         origin_y: int,
-        maze: Any,
+
     ) -> None:
         size = int(cell_size * 0.8)
-        sprites = (
-            self.red_ghost,
-            self.pink_ghost,
-            self.blue_ghost,
-            self.orange_ghost,
-        )
-        for (x, y), sprite in zip(
-            self._get_ghost_spawn_positions(maze), sprites
-        ):
-            center_x = origin_x + x * cell_size + cell_size // 2
-            center_y = origin_y + y * cell_size + cell_size // 2
+        for ghost in self.ghosts:
+            color = ghost.color
+            cur_pos = ghost.current_pos
+            center_x = origin_x + cur_pos[0] * cell_size + cell_size // 2
+            center_y = origin_y + cur_pos[1]* cell_size + cell_size // 2
+            if color == "red" :
+                sprite = self.red_ghost
+            elif color == "pink":
+                sprite = self.pink_ghost
+            elif color == "orange" :
+                sprite = self.orange_ghost
+            elif color == "blue":
+                sprite = self.blue_ghost
+
             image = pygame.transform.scale(sprite, (size, size))
-            screen.blit(
-                image, (center_x - size // 2, center_y - size // 2)
-            )
+            screen.blit(image, (center_x - size // 2, center_y - size // 2))
 
     def _get_ghost_spawn_positions(
         self, maze: Any

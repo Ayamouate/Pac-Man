@@ -23,6 +23,10 @@ class ScreensMixin:
     player: Any
     selected: int
 
+    def _inside(self, maze: Any, x: int, y: int) -> bool:
+        return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
+    
+
     def _draw_background(self, pygame: Any, screen: Any) -> None:
         if (
             self.video_background is None

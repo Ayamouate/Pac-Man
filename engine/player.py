@@ -62,7 +62,6 @@ class Player:
             current_time = time.monotonic()
         return current_time < self.respawn_protection_until
 
-
     def lose_life(self, current_time: float | None = None) -> int:
         if self.lives > 0:
             self.lives -= 1

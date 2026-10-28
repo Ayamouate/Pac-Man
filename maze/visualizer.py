@@ -1,7 +1,6 @@
 """Pygame display for the generated maze levels."""
 
 from __future__ import annotations
-from pathlib import Path
 from engine.pacgums import Pacgums
 from engine.interactions import InteractionManager
 from collections.abc import Mapping, Sequence
@@ -88,10 +87,23 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.game_over_reason: str | None = None
         self.ghosts_positions = self._get_ghost_spawn_positions(self.maze)
         self.ghosts = [
-            Ghost("red", None,self.ghosts_positions[0], self.ghosts_positions[0], "chase"),
-            Ghost("pink", None, self.ghosts_positions[1], self.ghosts_positions[1], "chase"),
-            Ghost("blue", None, self.ghosts_positions[2], self.ghosts_positions[2], "chase"),
-            Ghost("orange", None, self.ghosts_positions[3],  self.ghosts_positions[3], "chase")]
+            Ghost(
+                "red", None, self.ghosts_positions[0],
+                self.ghosts_positions[0], "chase"
+            ),
+            Ghost(
+                "pink", None, self.ghosts_positions[1],
+                self.ghosts_positions[1], "chase"
+            ),
+            Ghost(
+                "blue", None, self.ghosts_positions[2],
+                self.ghosts_positions[2], "chase"
+            ),
+            Ghost(
+                "orange", None, self.ghosts_positions[3],
+                self.ghosts_positions[3], "chase"
+            ),
+        ]
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -189,8 +201,6 @@ class MazeViewer(GameMixin, ScreensMixin):
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         running = self._handle_key(pygame, event.key)
-
-
                 if (
                     self.state == "playing"
                     and self.game_state == "playing"
@@ -384,15 +394,15 @@ class MazeViewer(GameMixin, ScreensMixin):
             self.hud,
         ]
         if self.game_state == "pause":
-                    elapsed = (
-                        self.pause_start - self.start_time - self.pause_total_time
-                    ) // 1000
+            elapsed = (
+                self.pause_start - self.start_time - self.pause_total_time
+            ) // 1000
         else:
-                    elapsed = (
-                        pygame.time.get_ticks()
-                        - self.pause_total_time
-                        - self.start_time
-                    ) // 1000
+            elapsed = (
+                pygame.time.get_ticks()
+                - self.pause_total_time
+                - self.start_time
+            ) // 1000
 
         values = [
             "",
@@ -478,9 +488,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         center_x = origin_x + x * cell_size + cell_size // 2
         center_y = origin_y + y * cell_size + cell_size // 2
 
-        radius = max(3, cell_size // 3)
         protected = self.player.is_respawn_protected()
-
 
         if self.player_image is not None:
             size = int(cell_size * 0.8)
@@ -508,12 +516,12 @@ class MazeViewer(GameMixin, ScreensMixin):
             color = ghost.color
             cur_pos = ghost.current_pos
             center_x = origin_x + cur_pos[0] * cell_size + cell_size // 2
-            center_y = origin_y + cur_pos[1]* cell_size + cell_size // 2
-            if color == "red" :
+            center_y = origin_y + cur_pos[1] * cell_size + cell_size // 2
+            if color == "red":
                 sprite = self.red_ghost
             elif color == "pink":
                 sprite = self.pink_ghost
-            elif color == "orange" :
+            elif color == "orange":
                 sprite = self.orange_ghost
             elif color == "blue":
                 sprite = self.blue_ghost

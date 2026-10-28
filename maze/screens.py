@@ -25,7 +25,6 @@ class ScreensMixin:
 
     def _inside(self, maze: Any, x: int, y: int) -> bool:
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
-    
 
     def _draw_background(self, pygame: Any, screen: Any) -> None:
         if (
@@ -67,22 +66,49 @@ class ScreensMixin:
         screen.blit(surface, (0, 0))
 
         if self.game_over_reason == "time":
-            panel = pygame.Surface((900, 260), pygame.SRCALPHA)
-            panel.fill((57, 29, 29, 240))
-            panel_rect = panel.get_rect(
+            image = pygame.transform.smoothscale(
+                self.game_over_image, (900, 200)
+            )
+            rect = image.get_rect(
                 center=(self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] // 2)
             )
-            screen.blit(panel, panel_rect)
-            title_font = pygame.font.Font(None, 72)
-            body_font = pygame.font.Font(None, 34)
-            title = title_font.render("TIME'S UP", True, self.MENU_SELECTED)
-            body = body_font.render(
+            screen.blit(image, rect)
+
+            artwork_fill = (47, 24, 23)
+            title_area = pygame.Rect(rect.left + 292, rect.top + 5, 316, 43)
+            message_area = pygame.Rect(rect.left + 155, rect.top + 65, 590, 88)
+            pygame.draw.rect(screen, artwork_fill, title_area)
+            pygame.draw.rect(screen, artwork_fill, message_area)
+
+            title_font = pygame.font.SysFont("dejavusans", 38, bold=True)
+            body_font = pygame.font.SysFont("dejavusans", 25, bold=True)
+            hint_font = pygame.font.SysFont("dejavusans", 19)
+            title = title_font.render("GAME OVER", True, (255, 226, 228))
+
+            message = body_font.render(
+                "TIME'S UP!",
+                True,
+                (255, 248, 245),
+            )
+            hint = hint_font.render(
                 "Press ENTER to return to the main menu",
                 True,
-                self.MENU_TEXT,
+                (231, 190, 193),
             )
-            screen.blit(title, title.get_rect(center=(550, 410)))
-            screen.blit(body, body.get_rect(center=(550, 500)))
+            center_x = self.WINDOW_SIZE[0] // 2
+
+            screen.blit(
+                title,
+                title.get_rect(center=(center_x, rect.top + 26)),
+            )
+            screen.blit(
+                message,
+                message.get_rect(center=(center_x, rect.top + 101)),
+            )
+            screen.blit(
+                hint,
+                hint.get_rect(center=(center_x, rect.top + 131)),
+            )
             return
 
         image = pygame.transform.smoothscale(self.game_over_image, (900, 200))
@@ -149,6 +175,18 @@ class ScreensMixin:
 
             )
             screen.blit(text, text_rect)
+
+        # signature message
+        credit_font = pygame.font.SysFont("dejavusans", 20)
+        credit = credit_font.render(
+            "Created by mezahir and aymouate",
+            True,
+            (255, 250, 205),
+        )
+        credit_rect = credit.get_rect(
+            center=(center_x, self.WINDOW_SIZE[1] - 22)
+        )
+        screen.blit(credit, credit_rect)
 
     # def _draw_highscores(self, pygame: Any, screen: Any) -> None:
     #     screen.blit(self.background, (0, 0))

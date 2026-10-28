@@ -62,10 +62,6 @@ class Player:
             current_time = time.monotonic()
         return current_time < self.respawn_protection_until
 
-    def clear_respawn_protection(self) -> None:
-        """Clear protection when starting or changing to a new game level."""
-
-        self.respawn_protection_until = 0.0
 
     def lose_life(self, current_time: float | None = None) -> int:
         if self.lives > 0:

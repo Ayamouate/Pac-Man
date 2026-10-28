@@ -20,6 +20,7 @@ class MazeViewer(GameMixin, ScreensMixin):
     """Display configured mazes one level at a time."""
 
     WINDOW_SIZE = (1100, 900)
+
     HEADER_HEIGHT = 92
     PADDING = 24
 
@@ -478,24 +479,20 @@ class MazeViewer(GameMixin, ScreensMixin):
         center_y = origin_y + y * cell_size + cell_size // 2
 
         radius = max(3, cell_size // 3)
+        protected = self.player.is_respawn_protected()
+
 
         if self.player_image is not None:
             size = int(cell_size * 0.8)
             image = pygame.transform.scale(
                 self.player_image, (size, size)
             )
+            if protected:
+                image.set_alpha(150)
             rect = image.get_rect(
                 center=(round(center_x), round(center_y))
             )
             screen.blit(image, rect)
-        else:
-            pygame.draw.circle(
-                screen,
-                (255, 220, 0),
-                (round(center_x), round(center_y)),
-                radius,
-            )
-
 
     def _draw_ghosts(
         self,

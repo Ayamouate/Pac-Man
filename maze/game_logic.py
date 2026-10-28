@@ -130,14 +130,7 @@ class GameMixin:
         self.pause_total_time = 0
         self.last_direction = None
         self.game_over_reason = None
-        self.player.clear_respawn_protection()
         self.start_time = pygame.time.get_ticks()
-
-    def _elapsed_seconds(self, now: int) -> int:
-        active_milliseconds = max(
-            0, now - self.start_time - self.pause_total_time
-        )
-        return active_milliseconds // 1000
 
     def _timer_expired(self, now: int) -> bool:
         return bool(
@@ -152,7 +145,6 @@ class GameMixin:
             len(self.maze.maze[0]) // 2, len(self.maze.maze) // 2)
         self.player.current_pos = self.player.start_position
         self.player.direction = None
-        self.player.clear_respawn_protection()
 
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums

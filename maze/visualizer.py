@@ -84,14 +84,17 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.game_state = "playing"
         self.pause_start = 0
         self.pause_total_time = 0
+        self.game_over_time = None
         self.last_direction: str | None = None
         self.game_over_reason: str | None = None
-        self.ghosts_positions = self._get_ghost_spawn_positions(self.maze)
+        self.start_ghosts_positions = self._get_ghost_spawn_positions(self.maze)
         self.ghosts = [
-            Ghost("red", None,self.ghosts_positions[0], self.ghosts_positions[0], "chase"),
-            Ghost("pink", None, self.ghosts_positions[1], self.ghosts_positions[1], "chase"),
-            Ghost("blue", None, self.ghosts_positions[2], self.ghosts_positions[2], "chase"),
-            Ghost("orange", None, self.ghosts_positions[3],  self.ghosts_positions[3], "chase")]
+            Ghost("red", None,self.start_ghosts_positions[0], self.start_ghosts_positions[0], "chase"),
+            Ghost("pink", None, self.start_ghosts_positions[1], self.start_ghosts_positions[1], "chase"),
+            Ghost("blue", None, self.start_ghosts_positions[2], self.start_ghosts_positions[2], "chase"),
+            Ghost("orange", None, self.start_ghosts_positions[3],  self.start_ghosts_positions[3], "chase")]
+
+        # self.ghosts_positions = self._get_ghost_spawn_positions(self.maze)
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -169,9 +172,11 @@ class MazeViewer(GameMixin, ScreensMixin):
         clock = pygame.time.Clock()
         last_move = pygame.time.get_ticks()
         self.start_time = last_move
-
+        last_ghost_move = 0
+        ghost_move_delay = 350
         move_delay = 180
         running = True
+
 
         try:
             while running:
@@ -183,6 +188,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                 ):
                     self.state = "over"
                     self.game_over_reason = "time"
+                    self.game_over_time = now // 1000
 
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -194,8 +200,15 @@ class MazeViewer(GameMixin, ScreensMixin):
                 if (
                     self.state == "playing"
                     and self.game_state == "playing"
-                    and now - last_move >= move_delay
+                    and now - last_move >= move_delay 
+                    and now - last_ghost_move >= ghost_move_delay
                 ):
+                    maze = self._mazes[self._level_index]
+                    # for ghost in self.ghosts:
+                    next_pos = self.ghosts[0].move(maze, self.player.current_pos)
+                    if next_pos is not None:
+                            self.ghosts[0].current_pos = next_pos
+                    last_ghost_move = now
                     maze = self._mazes[self._level_index]
                     self.player.move(maze)
                     interaction = InteractionManager(
@@ -214,18 +227,15 @@ class MazeViewer(GameMixin, ScreensMixin):
                             )
                             level_changed = True
                     last_move = now
-
-                    # ghost collision
-                    ghost_positions = set(
-                        self._get_ghost_spawn_positions(maze)
-                    )
                     if (
                         not level_changed
-                        and interaction.check_ghost_collision(ghost_positions)
+                        and interaction.check_ghost_collision(self.ghosts[0])
                     ):
                         if not self.player.is_alive():
                             self.game_over_reason = "lives"
                             self.state = "over"
+                            self.game_over_time = now // 1000
+                        
 
                 if self.state == "menu":
                     self._draw_main_menu(pygame, screen)
@@ -383,7 +393,9 @@ class MazeViewer(GameMixin, ScreensMixin):
             self.hud,
             self.hud,
         ]
-        if self.game_state == "pause":
+        if self.state == "over":
+            elapsed = self.game_over_time
+        elif self.game_state == "pause":
                     elapsed = (
                         self.pause_start - self.start_time - self.pause_total_time
                     ) // 1000
@@ -568,3 +580,9 @@ class MazeViewer(GameMixin, ScreensMixin):
             x_orange, y_orange = x4 + 1, y4 - 1
         ghosts_positions.append((x_orange, y_orange))
         return ghosts_positions
+    
+    # def test(self):
+    #     for i in self.ghosts:
+    #         print(i.shortest_path(self.maze, self.player.current_pos))
+
+    

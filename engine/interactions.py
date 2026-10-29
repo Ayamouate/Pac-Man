@@ -2,6 +2,7 @@ from typing import Any
 import time
 
 from engine.player import Player
+from engine.ghost import Ghost
 
 
 class InteractionManager:
@@ -23,14 +24,15 @@ class InteractionManager:
 
     def check_ghost_collision(
         self,
-        ghost_position: set[tuple[int, int]],
+        ghost: Ghost,
         current_time: float | None = None,
     ) -> bool:
         if current_time is None:
             current_time = time.monotonic()
         if self.player.is_respawn_protected(current_time):
             return False
-        if self.player.current_pos in ghost_position:
+        if self.player.current_pos == ghost.current_pos:
             self.player.lose_life(current_time)
+            ghost.current_pos = ghost.spawn_pos
             return True
         return False

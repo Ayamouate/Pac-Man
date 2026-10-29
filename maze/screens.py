@@ -188,20 +188,21 @@ class ScreensMixin:
         )
         screen.blit(credit, credit_rect)
 
-    # def _draw_highscores(self, pygame: Any, screen: Any) -> None:
-    #     screen.blit(self.background, (0, 0))
-    #     panel = pygame.Surface((700, 500), pygame.SRCALPHA)
-    #     panel.fill((8, 10, 24, 225))
-    #     screen.blit(panel, panel.get_rect(center=(550, 450)))
-    #     title_font = pygame.font.Font(None, 56)
-    #     body_font = pygame.font.Font(None, 32)
-    #     title = title_font.render("Highscores", True, self.MENU_SELECTED)
-    #     screen.blit(title, title.get_rect(center=(550, 250)))
-    #     score = body_font.render(
-    #         f"Current score: {self.player.score}", True, self.MENU_TEXT
-    #     )
-    #     screen.blit(score, score.get_rect(center=(550, 370)))
-    #     hint = body_font.render(
-    #         "Press Enter or Esc to return", True, self.MUTED_TEXT
-    #     )
-    #     screen.blit(hint, hint.get_rect(center=(550, 520)))
+    def _draw_highscores(self, pygame: Any, screen: Any) -> None:
+        
+        screen.blit(self.background, (0, 0))
+        panel = pygame.Surface((700, 500), pygame.SRCALPHA)
+        panel.fill((8, 10, 24, 225))
+        screen.blit(panel, panel.get_rect(center=(550, 450)))
+        title_font = pygame.font.Font(None, 56)
+        body_font = pygame.font.Font(None, 32)
+        title = title_font.render("Highscores", True, self.MENU_SELECTED)
+        screen.blit(title, title.get_rect(center=(550, 250)))
+        score = body_font.render(
+            f"Current score: {self.player.score}", True, self.MENU_TEXT
+        )
+        screen.blit(score, score.get_rect(center=(550, 370)))
+        hint = body_font.render(
+            "Press Enter or Esc to return", True, self.MUTED_TEXT
+        )
+        screen.blit(hint, hint.get_rect(center=(550, 520)))

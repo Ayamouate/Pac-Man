@@ -252,8 +252,8 @@ class MazeViewer(GameMixin, ScreensMixin):
                     self._draw_victory(pygame, screen)
                 elif self.state == "instructions":
                     self._instructions(pygame, screen)
-                # elif self.state == "highscores":
-                #     self._draw_highscores(pygame, screen)
+                elif self.state == "highscores":
+                    self._draw_highscores(pygame, screen)
                 pygame.display.flip()
                 clock.tick(60)
         finally:

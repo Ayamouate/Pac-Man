@@ -22,6 +22,8 @@ class MazeViewer(GameMixin, ScreensMixin):
 
     HEADER_HEIGHT = 92
     PADDING = 24
+    PLAYER_SPEED = 6.0
+    GHOST_SPEED = 3.0
 
     BACKGROUND = (8, 10, 24)
     WALL = (107, 66, 38)
@@ -107,6 +109,8 @@ class MazeViewer(GameMixin, ScreensMixin):
                 self.start_ghosts_positions[3], "chase"
             ),
         ]
+        self.player_render_pos: Any = None
+        self.ghost_render_positions: list[Any] = []
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -191,6 +195,7 @@ class MazeViewer(GameMixin, ScreensMixin):
 
         try:
             while running:
+                delta_time = clock.tick(60) / 1000.0
                 now = pygame.time.get_ticks()
                 if (
                     self.state == "playing"
@@ -206,21 +211,29 @@ class MazeViewer(GameMixin, ScreensMixin):
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         running = self._handle_key(pygame, event.key)
+                player_moved = False
+                ghost_moved = False
+                level_changed = False
+                maze = self._mazes[self._level_index]
+
                 if (
                     self.state == "playing"
                     and self.game_state == "playing"
-                    and now - last_move >= move_delay
                     and now - last_ghost_move >= ghost_move_delay
                 ):
-                    maze = self._mazes[self._level_index]
-                    # for ghost in self.ghosts:
                     next_pos = self.ghosts[0].move(
                         maze, self.player.current_pos
                     )
                     if next_pos is not None:
                         self.ghosts[0].current_pos = next_pos
                     last_ghost_move = now
-                    maze = self._mazes[self._level_index]
+                    ghost_moved = True
+
+                if (
+                    self.state == "playing"
+                    and self.game_state == "playing"
+                    and now - last_move >= move_delay
+                ):
                     self.player.move(maze)
                     interaction = InteractionManager(
                         self.player,
@@ -228,7 +241,6 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.super_pacgums,
                     )
                     interaction.check_pacgum()
-                    level_changed = False
                     if not self.pacgums.pacgums:
                         if self._level_index == len(self._mazes) - 1:
                             self.state = "victory"
@@ -238,14 +250,22 @@ class MazeViewer(GameMixin, ScreensMixin):
                             )
                             level_changed = True
                     last_move = now
-                    if (
-                        not level_changed
-                        and interaction.check_ghost_collision(self.ghosts[0])
-                    ):
+
+                    player_moved = True
+
+                if (player_moved or ghost_moved) and not level_changed:
+                    interaction = InteractionManager(
+                        self.player,
+                        self.pacgums.pacgums,
+                        self.super_pacgums,
+                    )
+                    if interaction.check_ghost_collision(self.ghosts[0]):
                         if not self.player.is_alive():
                             self.game_over_reason = "lives"
                             self.state = "over"
                             self.game_over_time = now // 1000
+
+                self._update_render_positions(pygame, delta_time)
 
                 if self.state == "menu":
                     self._draw_main_menu(pygame, screen)
@@ -265,11 +285,39 @@ class MazeViewer(GameMixin, ScreensMixin):
                 elif self.state == "highscores":
                     self._draw_highscores(pygame, screen)
                 pygame.display.flip()
-                clock.tick(60)
         finally:
             if self.video_background is not None:
                 self.video_background.stop()
             pygame.quit()
+
+    def _update_render_positions(
+        self, pygame: Any, delta_time: float
+    ) -> None:
+        player_target = pygame.Vector2(self.player.current_pos)
+        if self.player_render_pos is None:
+            self.player_render_pos = player_target
+        elif self.player_render_pos.distance_to(player_target) > 1.5:
+            self.player_render_pos = player_target
+        else:
+            self.player_render_pos = self.player_render_pos.move_towards(
+                player_target, self.PLAYER_SPEED * delta_time
+            )
+
+        while len(self.ghost_render_positions) < len(self.ghosts):
+            index = len(self.ghost_render_positions)
+            self.ghost_render_positions.append(
+                pygame.Vector2(self.ghosts[index].current_pos)
+            )
+
+        for index, ghost in enumerate(self.ghosts):
+            ghost_target = pygame.Vector2(ghost.current_pos)
+            render_pos = self.ghost_render_positions[index]
+            if render_pos.distance_to(ghost_target) > 1.5:
+                self.ghost_render_positions[index] = ghost_target
+            else:
+                self.ghost_render_positions[index] = render_pos.move_towards(
+                    ghost_target, self.GHOST_SPEED * delta_time
+                )
 
     def _draw(
         self, pygame: Any, screen: Any, title_font: Any, info_font: Any
@@ -495,10 +543,12 @@ class MazeViewer(GameMixin, ScreensMixin):
         origin_x: int,
         origin_y: int,
     ) -> None:
-        x, y = self.player.current_pos
+        render_pos = self.player_render_pos
+        if render_pos is None:
+            render_pos = pygame.Vector2(self.player.current_pos)
 
-        center_x = origin_x + x * cell_size + cell_size // 2
-        center_y = origin_y + y * cell_size + cell_size // 2
+        center_x = origin_x + (render_pos.x + 0.5) * cell_size
+        center_y = origin_y + (render_pos.y + 0.5) * cell_size
 
         protected = self.player.is_respawn_protected()
 
@@ -524,11 +574,14 @@ class MazeViewer(GameMixin, ScreensMixin):
 
     ) -> None:
         size = int(cell_size * 0.8)
-        for ghost in self.ghosts:
+        for index, ghost in enumerate(self.ghosts):
             color = ghost.color
-            cur_pos = ghost.current_pos
-            center_x = origin_x + cur_pos[0] * cell_size + cell_size // 2
-            center_y = origin_y + cur_pos[1] * cell_size + cell_size // 2
+            if index < len(self.ghost_render_positions):
+                render_pos = self.ghost_render_positions[index]
+            else:
+                render_pos = pygame.Vector2(ghost.current_pos)
+            center_x = origin_x + (render_pos.x + 0.5) * cell_size
+            center_y = origin_y + (render_pos.y + 0.5) * cell_size
             if color == "red":
                 sprite = self.red_ghost
             elif color == "pink":

@@ -24,15 +24,18 @@ class InteractionManager:
 
     def check_ghost_collision(
         self,
-        ghost: Ghost,
+        ghosts: Ghost,
         current_time: float | None = None,
     ) -> bool:
         if current_time is None:
             current_time = time.monotonic()
         if self.player.is_respawn_protected(current_time):
             return False
-        if self.player.current_pos == ghost.current_pos:
-            self.player.lose_life(current_time)
-            ghost.current_pos = ghost.spawn_pos
-            return True
+        
+        for ghost in ghosts:
+            if self.player.current_pos == ghost.current_pos:
+                self.player.lose_life(current_time)
+                for ghost in ghosts:
+                    ghost.current_pos = ghost.spawn_pos
+                return True
         return False

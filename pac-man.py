@@ -14,6 +14,7 @@ def main() -> None:
     mazes = generate_mazes(data["levels"], seed=data["seed"])
     print(f"Loaded {len(mazes)} maze levels.")
     MazeViewer(data, mazes).run()
+    # MazeViewer(data,mazes).test()
 
 
 if __name__ == "__main__":

@@ -1,5 +1,3 @@
-import copy
-import json
 import re
 from typing import Any, Dict, List
 
@@ -11,4 +9,3 @@ DEFAULT_NAME = "PLAYER"
 _VALID_NAME_CHARS = re.compile(r"[^A-Za-z0-9 ]")
 
 EMPTY_HIGHSCORES: List[Dict[str, Any]] = []
-

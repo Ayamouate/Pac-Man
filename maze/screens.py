@@ -189,7 +189,6 @@ class ScreensMixin:
         screen.blit(credit, credit_rect)
 
     def _draw_highscores(self, pygame: Any, screen: Any) -> None:
-        
         screen.blit(self.background, (0, 0))
         panel = pygame.Surface((700, 500), pygame.SRCALPHA)
         panel.fill((8, 10, 24, 225))

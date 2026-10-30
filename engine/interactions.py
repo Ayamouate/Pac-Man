@@ -15,12 +15,14 @@ class InteractionManager:
         self.pacgums = pacgums
         self.super_pacgums = super_pacgums
 
-    def check_pacgum(self) -> None:
+    def check_pacgum(self, ghosts) -> None:
         if self.player.current_pos in self.pacgums:
             self.pacgums.discard(self.player.current_pos)
             self.player.add_score()
         elif self.player.current_pos in self.super_pacgums:
             self.super_pacgums.remove(self.player.current_pos)
+            for ghost in ghosts:
+                ghost.state = "Frightened"
             self.player.add_super_score()
 
     def check_ghost_collision(

@@ -189,8 +189,8 @@ class MazeViewer(GameMixin, ScreensMixin):
         last_move = pygame.time.get_ticks()
         self.start_time = last_move
         last_ghost_move = 0
-        ghost_move_delay = 350
-        move_delay = 180
+        ghost_move_delay = 400
+        move_delay = 200
         running = True
 
         try:
@@ -221,11 +221,13 @@ class MazeViewer(GameMixin, ScreensMixin):
                     and self.game_state == "playing"
                     and now - last_ghost_move >= ghost_move_delay
                 ):
-                    next_pos = self.ghosts[0].move(
-                        maze, self.player.current_pos
-                    )
-                    if next_pos is not None:
-                        self.ghosts[0].current_pos = next_pos
+                    for ghost in self.ghosts:
+                        target = ghost.get_target_position(
+                            self.player, self.ghosts[0], maze
+                        )
+                        next_pos = ghost.move(maze, target)
+                        if next_pos is not None:
+                            ghost.current_pos = next_pos
                     last_ghost_move = now
                     ghost_moved = True
 
@@ -234,6 +236,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                     and self.game_state == "playing"
                     and now - last_move >= move_delay
                 ):
+                    maze = self._mazes[self._level_index]
                     self.player.move(maze)
                     interaction = InteractionManager(
                         self.player,
@@ -259,7 +262,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.pacgums.pacgums,
                         self.super_pacgums,
                     )
-                    if interaction.check_ghost_collision(self.ghosts[0]):
+                    if interaction.check_ghost_collision(self.ghosts):
                         if not self.player.is_alive():
                             self.game_over_reason = "lives"
                             self.state = "over"

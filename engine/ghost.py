@@ -1,9 +1,14 @@
-from maze.screens import ScreensMixin
 from collections import deque
 from typing import Any
 
+from engine.player import Player
+from maze.screens import ScreensMixin
+
 
 class Ghost:
+    directions = {"right": (1, 0), "up": (0, -1),
+                  "down": (0, 1), "left": (-1, 0)}
+
     def __init__(
         self,
         color: str,
@@ -79,3 +84,50 @@ class Ghost:
             next_direction = path[1]
             return next_direction
         return None
+
+    def get_target_position(
+        self, player: Player, red_ghost: "Ghost", maze: Any
+    ) -> tuple[int, int]:
+        if self.color == "red":
+            return player.current_pos
+        elif self.color == "pink":
+            direction = player.direction or "right"
+            target_x = (
+                player.current_pos[0]
+                + self.directions[direction][0] * 4
+            )
+            target_y = (
+                player.current_pos[1]
+                + self.directions[direction][1] * 4
+            )
+        elif self.color == "blue":
+            direction = player.direction or "right"
+            intermediate_target_x = (
+                player.current_pos[0]
+                + self.directions[direction][0] * 2
+            )
+            intermediate_target_y = (
+                player.current_pos[1]
+                + self.directions[direction][1] * 2
+            )
+            target_x = (
+                (intermediate_target_x - red_ghost.current_pos[0]) * 2
+                + red_ghost.current_pos[0]
+            )
+            target_y = (
+                (intermediate_target_y - red_ghost.current_pos[1]) * 2
+                + red_ghost.current_pos[1]
+            )
+        elif self.color == "orange":
+            distance = (
+                abs(self.current_pos[0] - player.current_pos[0])
+                + abs(self.current_pos[1] - player.current_pos[1])
+            )
+            if distance > 6:
+                return player.current_pos
+            else:
+                return self.spawn_pos
+        target_x = max(0, min(len(maze.maze) - 1, target_x))
+        target_y = max(0, min(len(maze.maze[0]) - 1, target_y))
+        target = (target_x, target_y)
+        return target

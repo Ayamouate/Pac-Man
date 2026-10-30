@@ -275,11 +275,11 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.pacgums.pacgums,
                         self.super_pacgums,
                     )
-                    # if interaction.check_ghost_collision(self.ghosts):
-                    #     if not self.player.is_alive():
-                    #         self.game_over_reason = "lives"
-                    #         self.state = "over"
-                    #         self.game_over_time = now // 1000
+                    if interaction.check_ghost_collision(self.ghosts):
+                        if not self.player.is_alive():
+                            self.game_over_reason = "lives"
+                            self.state = "over"
+                            self.game_over_time = now // 1000
 
                 self._update_render_positions(pygame, delta_time)
 

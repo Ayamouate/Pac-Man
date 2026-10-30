@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from engine.pacgums import Pacgums
 from typing import Any
+from engine.ghost import Ghost
 
 
 class GameMixin:
@@ -25,6 +26,12 @@ class GameMixin:
     pause_total_time: int
     last_direction: str | None
     game_over_reason: str | None
+    ghosts: list[Ghost]
+
+    def _get_ghost_spawn_positions(
+        self, maze: Any
+    ) -> list[tuple[int, int]]:
+        raise NotImplementedError
 
     def _handle_key(self, pygame: Any, key: int) -> bool:
         moves = {
@@ -144,6 +151,13 @@ class GameMixin:
         self.player.start_position = (
             len(self.maze.maze[0]) // 2, len(self.maze.maze) // 2)
         self.player.current_pos = self.player.start_position
+        self.start_ghosts_positions = self._get_ghost_spawn_positions(
+            self.maze
+        )
+        for ghost, position in zip(self.ghosts, self.start_ghosts_positions):
+            ghost.current_pos = position
+            ghost.spawn_pos = position
+
         self.player.direction = None
 
         self.pacgums = Pacgums(self.maze, self.player)

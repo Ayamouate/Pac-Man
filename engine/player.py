@@ -15,6 +15,7 @@ class Player:
         lives: int,
         super_pacgums_points: int,
         pacgums_points: int,
+        ghost_points: int
     ) -> None:
         self.start_position = start_position
         self.super_pacgums_points = super_pacgums_points
@@ -24,6 +25,7 @@ class Player:
         self.direction: str | None = None
         self.current_pos = self.start_position
         self.respawn_protection_until = 0.0
+        self.ghost_points = ghost_points
 
     def can_move(self, direction: str, maze: Any) -> bool:
         if direction not in self.directions:
@@ -48,6 +50,9 @@ class Player:
 
     def add_super_score(self) -> None:
         self.score += self.super_pacgums_points
+
+    def add_ghost_score(self) -> None:
+        self.score += self.ghost_points
 
     def is_alive(self) -> bool:
         if self.lives == 0:

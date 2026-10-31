@@ -13,19 +13,20 @@ class Ghost:
         self,
         color: str,
         direction: str | None,
-        spawn_pos: tuple[int, int],
-        current_pos: tuple[int, int],
-        state: str,
+        spawn_pos: tuple[int, int]
     ) -> None:
         self.color = color
         self.direction = direction
         self.spawn_pos = spawn_pos
-        self.current_pos = current_pos
-        self.state = state
+        self.current_pos = spawn_pos
+        self.state = "chase"
         self.inside = ScreensMixin()
         self.parent: dict[
             tuple[int, int], tuple[int, int] | None
         ] = {}
+        self.frightened_time = 0
+        self.is_eaten = False
+        self.eaten_time = 0
 
     def get_neighbors(
         self, maze: Any, cell: tuple[int, int]
@@ -79,10 +80,13 @@ class Ghost:
     def move(
         self, maze: Any, target_pos: tuple[int, int]
     ) -> tuple[int, int] | None:
-        path = self.shortest_path(maze, target_pos)
-        if len(path) >= 2:
-            next_direction = path[1]
-            return next_direction
+        if self.state == "chase":
+            path = self.shortest_path(maze, target_pos)
+            if len(path) >= 2:
+                next_direction = path[1]
+                return next_direction
+        else:
+            return target_pos
         return None
 
     def get_target_position(
@@ -123,7 +127,7 @@ class Ghost:
                 abs(self.current_pos[0] - player.current_pos[0])
                 + abs(self.current_pos[1] - player.current_pos[1])
             )
-            if distance > 6:
+            if distance > 10:
                 return player.current_pos
             else:
                 return self.spawn_pos
@@ -131,3 +135,15 @@ class Ghost:
         target_y = max(0, min(len(maze.maze) - 1, target_y))
         target = (target_x, target_y)
         return target
+    
+    def get_escape_move(self, maze,target_pos):
+        neighbors = self.get_neighbors(maze,self.current_pos)
+        if not neighbors:
+            return self.current_pos
+        distances = {}
+        for neighbor in neighbors:
+            distance = abs(neighbor[0] - target_pos[0]) + abs(neighbor[1] - target_pos[1])
+            distances[neighbor] = distance
+        
+        best_move = max(distances, key=distances.get)
+        return best_move

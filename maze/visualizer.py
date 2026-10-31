@@ -19,6 +19,8 @@ class MazeViewer(GameMixin, ScreensMixin):
     """Display configured mazes one level at a time."""
 
     WINDOW_SIZE = (1100, 900)
+    FRIGHTENED_DURATION = 4000
+    EATEN_TIME = 4000
 
     HEADER_HEIGHT = 92
     PADDING = 24
@@ -62,13 +64,14 @@ class MazeViewer(GameMixin, ScreensMixin):
             ),
             self.starting_lives,
             data["points_per_super_pacgum"],
-            data["points_per_pacgum"],
+            data["points_per_pacgum"],data["points_per_ghost"]
         )
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums
         # self.loader = Loader(self._mazes[0])
         self.pacgums_image: Any = None
         self.player_image: Any = None
+        self.frightened_ghost : Any = None
         self.super_pacgums_image: Any = None
         self.background: Any = None
         self.video_background: Any = None
@@ -96,20 +99,16 @@ class MazeViewer(GameMixin, ScreensMixin):
         )
         self.ghosts = [
             Ghost(
-                "red", None, self.start_ghosts_positions[0],
-                self.start_ghosts_positions[0], "chase"
+                "red", None, self.start_ghosts_positions[0]
             ),
             Ghost(
-                "pink", None, self.start_ghosts_positions[1],
-                self.start_ghosts_positions[1], "chase"
+                "pink", None, self.start_ghosts_positions[1]
             ),
             Ghost(
-                "blue", None, self.start_ghosts_positions[2],
-                self.start_ghosts_positions[2], "chase"
+                "blue", None, self.start_ghosts_positions[2]
             ),
             Ghost(
-                "orange", None, self.start_ghosts_positions[3],
-                self.start_ghosts_positions[3], "chase"
+                "orange", None, self.start_ghosts_positions[3]
             ),
         ]
         self.player_render_pos: Any = None
@@ -191,6 +190,9 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.life_icon = pygame.image.load(
                 "assets/life_icon.png"
             ).convert_alpha()
+        self.frightened_ghost = pygame.image.load(
+                "assets/edible.png"
+            ).convert_alpha()
         pygame.display.set_caption("Pac-Man Maze Viewer")
         title_font = pygame.font.Font(None, 32)
         info_font = pygame.font.Font(None, 24)
@@ -234,10 +236,24 @@ class MazeViewer(GameMixin, ScreensMixin):
                 ):
                     maze = self._mazes[self._level_index]
                     if now - last_ghost_move >= ghost_move_delay:
-                        for ghost in self.ghosts:
-                            target = ghost.get_target_position(
-                                self.player, self.ghosts[0], maze
-                            )
+                        for index, ghost in enumerate(self.ghosts):
+                            if ghost.is_eaten :
+                                if now - ghost.eaten_time >= self.EATEN_TIME:
+                                    ghost.state = "chase"
+                                    ghost.current_pos = ghost.spawn_pos
+                                    self.ghost_render_positions[index] = pygame.Vector2(
+                                ghost.spawn_pos
+                                    )
+                                    ghost.is_eaten = False
+                                continue
+                            if ghost.state == "Frightened" and now - ghost.frightened_time >= self.FRIGHTENED_DURATION:
+                                    ghost.state = "chase"
+                            if ghost.state == "Frightened":
+                                target = ghost.get_escape_move(maze,self.player.current_pos)
+                            else:
+                                target = ghost.get_target_position(
+                                    self.player, self.ghosts[0], maze
+                                )
                             next_pos = ghost.move(maze, target)
                             if next_pos is not None:
                                 ghost.current_pos = next_pos
@@ -249,7 +265,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.pacgums.pacgums,
                         self.super_pacgums,
                     )
-                    interaction.check_pacgum()
+                    interaction.check_pacgum(self.ghosts)
                     if not self.pacgums.pacgums:
                         if self._level_index == len(self._mazes) - 1:
                             self._start_end_state("victory")
@@ -587,6 +603,8 @@ class MazeViewer(GameMixin, ScreensMixin):
     ) -> None:
         size = int(cell_size * 0.8)
         for index, ghost in enumerate(self.ghosts):
+            if ghost.is_eaten:
+                continue
             color = ghost.color
             if index < len(self.ghost_render_positions):
                 render_pos = self.ghost_render_positions[index]
@@ -594,7 +612,10 @@ class MazeViewer(GameMixin, ScreensMixin):
                 render_pos = pygame.Vector2(ghost.current_pos)
             center_x = origin_x + (render_pos.x + 0.5) * cell_size
             center_y = origin_y + (render_pos.y + 0.5) * cell_size
-            if color == "red":
+
+            if ghost.state == "Frightened":
+                sprite = self.frightened_ghost
+            elif color == "red":
                 sprite = self.red_ghost
             elif color == "pink":
                 sprite = self.pink_ghost

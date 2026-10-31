@@ -42,9 +42,8 @@ class ScreensMixin:
         center_x = self.WINDOW_SIZE[0] // 2
         center_y = self.WINDOW_SIZE[1] // 2
 
-        size = 700
         image = pygame.transform.scale(
-            self.instruction_image, (size, size)
+            self.instruction_image, (700,600)
         )
         rect = image.get_rect(
             center=(round(center_x), round(center_y))

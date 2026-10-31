@@ -18,10 +18,14 @@ class ScreensMixin:
     pause_menu: Any
     game_over_image: Any
     menu_image: Any
+    highscore_title: Any
+    highscore_panel: Any
     game_over_reason: str | None
     _mazes: Any
     player: Any
+    highscore_manager: Any
     selected: int
+    name_entry: str
 
     def _inside(self, maze: Any, x: int, y: int) -> bool:
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
@@ -177,7 +181,7 @@ class ScreensMixin:
             screen.blit(text, text_rect)
 
         # signature message
-        credit_font = pygame.font.SysFont("dejavusans", 20)
+        credit_font = pygame.font.SysFont("lora", 20)
         credit = credit_font.render(
             "Created by mezahir and aymouate",
             True,
@@ -189,19 +193,196 @@ class ScreensMixin:
         screen.blit(credit, credit_rect)
 
     def _draw_highscores(self, pygame: Any, screen: Any) -> None:
+        """Draw the shared leaderboard loaded from the high-score file."""
+
         screen.blit(self.background, (0, 0))
-        panel = pygame.Surface((700, 500), pygame.SRCALPHA)
-        panel.fill((8, 10, 24, 225))
-        screen.blit(panel, panel.get_rect(center=(550, 450)))
-        title_font = pygame.font.Font(None, 56)
-        body_font = pygame.font.Font(None, 32)
-        title = title_font.render("Highscores", True, self.MENU_SELECTED)
-        screen.blit(title, title.get_rect(center=(550, 250)))
-        score = body_font.render(
-            f"Current score: {self.player.score}", True, self.MENU_TEXT
+        title = pygame.transform.smoothscale(
+            self.highscore_title, (820, 159)
         )
-        screen.blit(score, score.get_rect(center=(550, 370)))
-        hint = body_font.render(
-            "Press Enter or Esc to return", True, self.MUTED_TEXT
+        title_rect = title.get_rect(center=(550, 138))
+        screen.blit(title, title_rect)
+
+        panel = pygame.transform.smoothscale(
+            self.highscore_panel, (780, 640)
         )
-        screen.blit(hint, hint.get_rect(center=(550, 520)))
+        panel_rect = panel.get_rect(center=(550, 540))
+        screen.blit(panel, panel_rect)
+
+        title_font = pygame.font.SysFont("dejavusans", 28, bold=True)
+        body_font = pygame.font.SysFont("dejavusans", 25, bold=True)
+        hint_font = pygame.font.SysFont("lora", 24)
+
+        # Reload when the page is opened so scores written by another process
+        # are visible without restarting the game.
+        entries = self.highscore_manager.load()
+
+        heading_y = panel_rect.top + 75
+        heading_player = title_font.render(
+            "RANK  PLAYER", True, (255, 224, 220)
+        )
+        heading_score = title_font.render(
+            "SCORE", True, (255, 224, 220)
+        )
+        screen.blit(
+            heading_player,
+            heading_player.get_rect(
+                left=panel_rect.left + 150,
+                centery=heading_y,
+            ),
+        )
+        screen.blit(
+            heading_score,
+            heading_score.get_rect(
+                right=panel_rect.right - 150,
+                centery=heading_y,
+            ),
+        )
+
+        if entries:
+            first_row_y = panel_rect.top + 165
+            row_height = 39
+            for rank, entry in enumerate(entries, start=1):
+                rank_text = body_font.render(
+                    f"{rank:>2}.", True, self.MENU_TEXT
+                )
+                name_text = body_font.render(
+                    entry.name, True, self.MENU_TEXT
+                )
+                score_text = body_font.render(
+                    f"{entry.score:>6}", True, self.MENU_TEXT
+                )
+                rank_rect = rank_text.get_rect(
+                    left=panel_rect.left + 150,
+                    centery=first_row_y,
+                )
+                score_rect = score_text.get_rect(
+                    right=panel_rect.right - 150,
+                    centery=first_row_y,
+                )
+                screen.blit(rank_text, rank_rect)
+                screen.blit(
+                    name_text,
+                    name_text.get_rect(
+                        left=rank_rect.right + 14,
+                        centery=first_row_y,
+                    ),
+                )
+                screen.blit(score_text, score_rect)
+                first_row_y += row_height
+        else:
+            empty = body_font.render(
+                "NO SCORES YET", True, self.MENU_TEXT
+            )
+            screen.blit(
+                empty,
+                empty.get_rect(center=(550, panel_rect.top + 245)),
+            )
+
+        hint = hint_font.render(
+            "Press Enter or Esc to return", True, (231, 190, 193)
+        )
+        screen.blit(
+            hint,
+            hint.get_rect(center=(550, panel_rect.bottom - 43)),
+        )
+
+    def _draw_name_entry(self, pygame: Any, screen: Any) -> None:
+        """Draw the Sakura-styled name entry screen for a new high score."""
+
+        screen.blit(self.background, (0, 0))
+
+        title_font = pygame.font.SysFont("dejavusans", 56, bold=True)
+        heading_font = pygame.font.SysFont("dejavusans", 27, bold=True)
+        body_font = pygame.font.SysFont("Pacifico", 22)
+        score_font = pygame.font.SysFont("dejavusans", 32, bold=True)
+        hint_font = pygame.font.SysFont("lora", 22)
+
+        def outlined_text(
+            text: str,
+            font: Any,
+            center: tuple[int, int],
+            fill: tuple[int, int, int],
+        ) -> None:
+            rendered = font.render(text, True, fill)
+            shadow = font.render(text, True, (57, 28, 31))
+            rect = rendered.get_rect(center=center)
+            for offset in ((4, 5), (3, 3), (-2, 2), (2, -2)):
+                screen.blit(shadow, rect.move(*offset))
+            screen.blit(rendered, rect)
+
+        outlined_text(
+            "NEW HIGH SCORE!",
+            title_font,
+            (550, 122),
+            (249, 191, 198),
+        )
+
+        panel = pygame.transform.smoothscale(
+            self.highscore_panel, (780, 561)
+        )
+        panel_rect = panel.get_rect(center=(550, 492))
+        screen.blit(panel, panel_rect)
+
+        outlined_text(
+            "ENTER YOUR NAME",
+            heading_font,
+            (550, panel_rect.top + 72),
+            (255, 224, 220),
+        )
+
+        instruction = body_font.render(
+            "Letters, numbers, and spaces · 10 characters max",
+            True,
+            (231, 190, 193),
+        )
+        screen.blit(
+            instruction,
+            instruction.get_rect(center=(550, panel_rect.top + 143)),
+        )
+
+        input_rect = pygame.Rect(
+            panel_rect.left + 160,
+            panel_rect.top + 178,
+            panel_rect.width - 320,
+            86,
+        )
+        pygame.draw.rect(
+            screen,
+            (38, 19, 23),
+            input_rect,
+            border_radius=18,
+        )
+        pygame.draw.rect(
+            screen,
+            (245, 174, 181),
+            input_rect,
+            width=3,
+            border_radius=18,
+        )
+        display_name = self.name_entry or "TYPE YOUR NAME"
+        name_color = (
+            self.MENU_TEXT if self.name_entry else (155, 111, 117)
+        )
+        name_font = pygame.font.SysFont("dejavusans", 31, bold=True)
+        name_text = name_font.render(display_name, True, name_color)
+        screen.blit(name_text, name_text.get_rect(center=input_rect.center))
+
+        score = score_font.render(
+            f"SCORE  {self.player.score:06d}",
+            True,
+            self.MENU_TEXT,
+        )
+        screen.blit(
+            score,
+            score.get_rect(center=(550, panel_rect.top + 337)),
+        )
+
+        hint = hint_font.render(
+            "ENTER to save  ·  BACKSPACE to edit  ·  ESC to cancel",
+            True,
+            (231, 190, 193),
+        )
+        screen.blit(
+            hint,
+            hint.get_rect(center=(550, panel_rect.bottom - 43)),
+        )

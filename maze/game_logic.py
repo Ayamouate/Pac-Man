@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections.abc import Sequence
 from engine.pacgums import Pacgums
+from maze.highscore import MAX_PLAYER_NAME_LENGTH
 from typing import Any
 from engine.ghost import Ghost
 
@@ -27,13 +28,33 @@ class GameMixin:
     last_direction: str | None
     game_over_reason: str | None
     ghosts: list[Ghost]
+    highscore_manager: Any
+    name_entry: str
+    name_entry_return_state: str
 
     def _get_ghost_spawn_positions(
         self, maze: Any
     ) -> list[tuple[int, int]]:
         raise NotImplementedError
 
-    def _handle_key(self, pygame: Any, key: int) -> bool:
+    def _handle_key(
+        self, pygame: Any, key: int, text: str = ""
+    ) -> bool:
+        if self.state == "name_entry":
+            if key == pygame.K_ESCAPE:
+                self.state = self.name_entry_return_state
+            elif key == pygame.K_RETURN:
+                self._save_name_entry()
+            elif key == pygame.K_BACKSPACE:
+                self.name_entry = self.name_entry[:-1]
+            elif (
+                text.isascii()
+                and (text.isalnum() or text == " ")
+                and len(self.name_entry) < MAX_PLAYER_NAME_LENGTH
+            ):
+                self.name_entry += text.upper()
+            return True
+
         moves = {
             pygame.K_UP: "up",
             pygame.K_w: "up",
@@ -126,6 +147,23 @@ class GameMixin:
         if key in moves and self.game_state == "playing":
             self.player.direction = moves[key]
         return True
+
+    def _start_end_state(self, state: str) -> None:
+        """Show name entry before an end screen when the score qualifies."""
+
+        self.name_entry_return_state = state
+        if self.highscore_manager.qualifies(self.player.score):
+            self.name_entry = ""
+            self.state = "name_entry"
+        else:
+            self.state = state
+
+    def _save_name_entry(self) -> None:
+        """Persist the entered name and continue to the end screen."""
+
+        name = self.name_entry.strip() or "PLAYER"
+        self.highscore_manager.record(name, self.player.score)
+        self.state = self.name_entry_return_state
 
     def _reset_game(self, pygame: Any) -> None:
         self._change_level(0)

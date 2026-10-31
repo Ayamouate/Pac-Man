@@ -68,7 +68,6 @@ class MazeViewer(GameMixin, ScreensMixin):
         )
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums
-        # self.loader = Loader(self._mazes[0])
         self.pacgums_image: Any = None
         self.player_image: Any = None
         self.frightened_ghost: Any = None

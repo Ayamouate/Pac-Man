@@ -6,7 +6,7 @@ from engine.interactions import InteractionManager
 from collections.abc import Mapping, Sequence
 from typing import Any
 from engine.player import Player
-from maze.maze_loader import Loader
+from maze.highscore import HighscoreManager
 from maze.game_logic import GameMixin
 from maze.screens import ScreensMixin
 from engine.ghost import Ghost
@@ -33,8 +33,6 @@ class MazeViewer(GameMixin, ScreensMixin):
     MENU_SELECTED = (255, 215, 0)
     MUTED_TEXT = (155, 165, 195)
     MAIN_MENU = ["Start Game", "View Highscores", "Instructions", "Exit"]
-    MENU_ARTWORK_SIZE = (921, 1152)
-    MENU_CARD_CENTERS = ((466, 210), (466, 451), (466, 698), (466, 945))
 
     def __init__(self, data: Any, mazes: Sequence[Any]) -> None:
         levels = data["levels"]
@@ -52,6 +50,9 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.orange_ghost: Any = None
         self._levels = levels
         self._mazes = mazes
+        self.highscore_manager = HighscoreManager(data["highscore_filename"])
+        self.name_entry = ""
+        self.name_entry_return_state = "over"
         self._level_index = 0
         self.maze = self._mazes[self._level_index]
         self.player = Player(
@@ -65,7 +66,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         )
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums
-        self.loader = Loader(self._mazes[0])
+        # self.loader = Loader(self._mazes[0])
         self.pacgums_image: Any = None
         self.player_image: Any = None
         self.super_pacgums_image: Any = None
@@ -78,6 +79,8 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.menu_image: Any = None
         self.pause_menu: Any = None
         self.game_over_image: Any = None
+        self.highscore_title: Any = None
+        self.highscore_panel: Any = None
         self.instruction_image: Any = None
         self.start_time = 0
         self.state = "menu"
@@ -158,6 +161,12 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.menu_image = pygame.image.load(
                 "assets/menu.png"
             ).convert_alpha()
+        self.highscore_title = pygame.image.load(
+                "assets/highscore_title.png"
+            ).convert_alpha()
+        self.highscore_panel = pygame.image.load(
+                "assets/highscore_panel.png"
+            ).convert_alpha()
         self.instruction_image = pygame.image.load(
                 "assets/instructions.png"
             ).convert_alpha()
@@ -202,34 +211,21 @@ class MazeViewer(GameMixin, ScreensMixin):
                     and self.game_state == "playing"
                     and self._timer_expired(now)
                 ):
-                    self.state = "over"
                     self.game_over_reason = "time"
                     self.game_over_time = now // 1000
+                    self._start_end_state("over")
 
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
                     elif event.type == pygame.KEYDOWN:
-                        running = self._handle_key(pygame, event.key)
+                        running = self._handle_key(
+                            pygame, event.key, event.unicode
+                        )
                 player_moved = False
                 ghost_moved = False
                 level_changed = False
                 maze = self._mazes[self._level_index]
-
-                # if (
-                #     self.state == "playing"
-                #     and self.game_state == "playing"
-                #     and now - last_ghost_move >= ghost_move_delay
-                # ):
-                #     for ghost in self.ghosts:
-                #         target = ghost.get_target_position(
-                #             self.player, self.ghosts[0], maze
-                #         )
-                #         next_pos = ghost.move(maze, target)
-                #         if next_pos is not None:
-                #             ghost.current_pos = next_pos
-                #     last_ghost_move = now
-                #     ghost_moved = True
 
                 if (
                     self.state == "playing"
@@ -237,9 +233,6 @@ class MazeViewer(GameMixin, ScreensMixin):
                     and now - last_move >= move_delay
                 ):
                     maze = self._mazes[self._level_index]
-                    # self.start_ghosts_positions = (
-                    #     self._get_ghost_spawn_positions(maze)
-                    # )
                     if now - last_ghost_move >= ghost_move_delay:
                         for ghost in self.ghosts:
                             target = ghost.get_target_position(
@@ -259,7 +252,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                     interaction.check_pacgum()
                     if not self.pacgums.pacgums:
                         if self._level_index == len(self._mazes) - 1:
-                            self.state = "victory"
+                            self._start_end_state("victory")
                         else:
                             self._change_level(
                                 self._level_index + 1, now=now
@@ -278,8 +271,9 @@ class MazeViewer(GameMixin, ScreensMixin):
                     if interaction.check_ghost_collision(self.ghosts):
                         if not self.player.is_alive():
                             self.game_over_reason = "lives"
-                            self.state = "over"
+
                             self.game_over_time = now // 1000
+                            self._start_end_state("over")
 
                 self._update_render_positions(pygame, delta_time)
 
@@ -300,6 +294,8 @@ class MazeViewer(GameMixin, ScreensMixin):
                     self._instructions(pygame, screen)
                 elif self.state == "highscores":
                     self._draw_highscores(pygame, screen)
+                elif self.state == "name_entry":
+                    self._draw_name_entry(pygame, screen)
                 pygame.display.flip()
         finally:
             if self.video_background is not None:

@@ -127,7 +127,7 @@ class Ghost:
                 return player.current_pos
             else:
                 return self.spawn_pos
-        target_x = max(0, min(len(maze.maze) - 1, target_x))
-        target_y = max(0, min(len(maze.maze[0]) - 1, target_y))
+        target_x = max(0, min(len(maze.maze[0]) - 1, target_x))
+        target_y = max(0, min(len(maze.maze) - 1, target_y))
         target = (target_x, target_y)
         return target

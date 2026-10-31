@@ -13,20 +13,20 @@ class Ghost:
         self,
         color: str,
         direction: str | None,
-        spawn_pos: tuple[int, int],
-        current_pos: tuple[int, int],
-        state: str,
+        spawn_pos: tuple[int, int]
     ) -> None:
         self.color = color
         self.direction = direction
         self.spawn_pos = spawn_pos
-        self.current_pos = current_pos
-        self.state = state
+        self.current_pos = spawn_pos
+        self.state = "chase"
         self.inside = ScreensMixin()
         self.parent: dict[
             tuple[int, int], tuple[int, int] | None
         ] = {}
-        self.frightened_time = 0.0
+        self.frightened_time = 0
+        self.is_eaten = False
+        self.eaten_time = 0
 
     def get_neighbors(
         self, maze: Any, cell: tuple[int, int]
@@ -138,6 +138,8 @@ class Ghost:
     
     def get_escape_move(self, maze,target_pos):
         neighbors = self.get_neighbors(maze,self.current_pos)
+        if not neighbors:
+            return self.current_pos
         distances = {}
         for neighbor in neighbors:
             distance = abs(neighbor[0] - target_pos[0]) + abs(neighbor[1] - target_pos[1])

@@ -19,6 +19,8 @@ class MazeViewer(GameMixin, ScreensMixin):
     """Display configured mazes one level at a time."""
 
     WINDOW_SIZE = (1100, 900)
+    FRIGHTENED_DURATION = 4000
+    EATEN_TIME = 4000
 
     HEADER_HEIGHT = 92
     PADDING = 24
@@ -61,7 +63,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             ),
             self.starting_lives,
             data["points_per_super_pacgum"],
-            data["points_per_pacgum"],
+            data["points_per_pacgum"],data["points_per_ghost"]
         )
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums
@@ -94,20 +96,16 @@ class MazeViewer(GameMixin, ScreensMixin):
         )
         self.ghosts = [
             Ghost(
-                "red", None, self.start_ghosts_positions[0],
-                self.start_ghosts_positions[0], "chase"
+                "red", None, self.start_ghosts_positions[0]
             ),
             Ghost(
-                "pink", None, self.start_ghosts_positions[1],
-                self.start_ghosts_positions[1], "chase"
+                "pink", None, self.start_ghosts_positions[1]
             ),
             Ghost(
-                "blue", None, self.start_ghosts_positions[2],
-                self.start_ghosts_positions[2], "chase"
+                "blue", None, self.start_ghosts_positions[2]
             ),
             Ghost(
-                "orange", None, self.start_ghosts_positions[3],
-                self.start_ghosts_positions[3], "chase"
+                "orange", None, self.start_ghosts_positions[3]
             ),
         ]
         self.player_render_pos: Any = None
@@ -242,7 +240,18 @@ class MazeViewer(GameMixin, ScreensMixin):
                 ):
                     maze = self._mazes[self._level_index]
                     if now - last_ghost_move >= ghost_move_delay:
-                        for ghost in self.ghosts:
+                        for index, ghost in enumerate(self.ghosts):
+                            if ghost.is_eaten :
+                                if now - ghost.eaten_time >= self.EATEN_TIME:
+                                    ghost.state = "chase"
+                                    ghost.current_pos = ghost.spawn_pos
+                                    self.ghost_render_positions[index] = pygame.Vector2(
+                                ghost.spawn_pos
+                                    )
+                                    ghost.is_eaten = False
+                                continue
+                            if ghost.state == "Frightened" and now - ghost.frightened_time >= self.FRIGHTENED_DURATION:
+                                    ghost.state = "chase"
                             if ghost.state == "Frightened":
                                 target = ghost.get_escape_move(maze,self.player.current_pos)
                             else:
@@ -595,6 +604,8 @@ class MazeViewer(GameMixin, ScreensMixin):
     ) -> None:
         size = int(cell_size * 0.8)
         for index, ghost in enumerate(self.ghosts):
+            if ghost.is_eaten:
+                continue
             color = ghost.color
             if index < len(self.ghost_render_positions):
                 render_pos = self.ghost_render_positions[index]
@@ -602,6 +613,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                 render_pos = pygame.Vector2(ghost.current_pos)
             center_x = origin_x + (render_pos.x + 0.5) * cell_size
             center_y = origin_y + (render_pos.y + 0.5) * cell_size
+
             if ghost.state == "Frightened":
                 sprite = self.frightened_ghost
             elif color == "red":

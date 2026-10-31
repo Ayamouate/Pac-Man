@@ -16,7 +16,7 @@ class InteractionManager:
         self.pacgums = pacgums
         self.super_pacgums = super_pacgums
 
-    def check_pacgum(self, ghosts) -> None:
+    def check_pacgum(self, ghosts: Sequence[Ghost]) -> None:
         if self.player.current_pos in self.pacgums:
             self.pacgums.discard(self.player.current_pos)
             self.player.add_score()

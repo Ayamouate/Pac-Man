@@ -19,7 +19,7 @@ class MazeViewer(GameMixin, ScreensMixin):
     """Display configured mazes one level at a time."""
 
     WINDOW_SIZE = (1100, 900)
-    FRIGHTENED_DURATION = 4000
+    FRIGHTENED_DURATION = 10000
     EATEN_TIME = 4000
 
     HEADER_HEIGHT = 92
@@ -64,14 +64,14 @@ class MazeViewer(GameMixin, ScreensMixin):
             ),
             self.starting_lives,
             data["points_per_super_pacgum"],
-            data["points_per_pacgum"],data["points_per_ghost"]
+            data["points_per_pacgum"], data["points_per_ghost"]
         )
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums
         # self.loader = Loader(self._mazes[0])
         self.pacgums_image: Any = None
         self.player_image: Any = None
-        self.frightened_ghost : Any = None
+        self.frightened_ghost: Any = None
         self.super_pacgums_image: Any = None
         self.background: Any = None
         self.video_background: Any = None
@@ -237,19 +237,25 @@ class MazeViewer(GameMixin, ScreensMixin):
                     maze = self._mazes[self._level_index]
                     if now - last_ghost_move >= ghost_move_delay:
                         for index, ghost in enumerate(self.ghosts):
-                            if ghost.is_eaten :
+                            if ghost.is_eaten:
                                 if now - ghost.eaten_time >= self.EATEN_TIME:
                                     ghost.state = "chase"
                                     ghost.current_pos = ghost.spawn_pos
-                                    self.ghost_render_positions[index] = pygame.Vector2(
-                                ghost.spawn_pos
+                                    self.ghost_render_positions[index] = (
+                                        pygame.Vector2(ghost.spawn_pos)
                                     )
                                     ghost.is_eaten = False
                                 continue
-                            if ghost.state == "Frightened" and now - ghost.frightened_time >= self.FRIGHTENED_DURATION:
-                                    ghost.state = "chase"
+                            if (
+                                ghost.state == "Frightened"
+                                and now - ghost.frightened_time
+                                >= self.FRIGHTENED_DURATION
+                            ):
+                                ghost.state = "chase"
                             if ghost.state == "Frightened":
-                                target = ghost.get_escape_move(maze,self.player.current_pos)
+                                target = ghost.get_escape_move(
+                                    maze, self.player.current_pos
+                                )
                             else:
                                 target = ghost.get_target_position(
                                     self.player, self.ghosts[0], maze

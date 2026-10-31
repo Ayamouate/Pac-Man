@@ -135,15 +135,20 @@ class Ghost:
         target_y = max(0, min(len(maze.maze) - 1, target_y))
         target = (target_x, target_y)
         return target
-    
-    def get_escape_move(self, maze,target_pos):
-        neighbors = self.get_neighbors(maze,self.current_pos)
+
+    def get_escape_move(
+        self, maze: Any, target_pos: tuple[int, int]
+    ) -> tuple[int, int]:
+        neighbors = self.get_neighbors(maze, self.current_pos)
         if not neighbors:
             return self.current_pos
         distances = {}
         for neighbor in neighbors:
-            distance = abs(neighbor[0] - target_pos[0]) + abs(neighbor[1] - target_pos[1])
+            distance = (
+                abs(neighbor[0] - target_pos[0])
+                + abs(neighbor[1] - target_pos[1])
+            )
             distances[neighbor] = distance
-        
-        best_move = max(distances, key=distances.get)
+
+        best_move = max(distances, key=lambda position: distances[position])
         return best_move

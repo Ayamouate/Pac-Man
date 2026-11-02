@@ -25,7 +25,9 @@ class MazeViewer(GameMixin, ScreensMixin):
     HEADER_HEIGHT = 92
     PADDING = 24
     PLAYER_SPEED = 6.0
-    GHOST_SPEED = 3.0
+    # Ghost decisions happen every 450 ms, so this carries each ghost across
+    # one cell without stopping between targets.
+    GHOST_SPEED = 2.2
 
     BACKGROUND = (8, 10, 24)
     WALL = (107, 66, 38)
@@ -232,39 +234,43 @@ class MazeViewer(GameMixin, ScreensMixin):
                 if (
                     self.state == "playing"
                     and self.game_state == "playing"
+                    and now - last_ghost_move >= ghost_move_delay
+                ):
+                    for index, ghost in enumerate(self.ghosts):
+                        if ghost.is_eaten:
+                            if now - ghost.eaten_time >= self.EATEN_TIME:
+                                ghost.state = "chase"
+                                ghost.current_pos = ghost.spawn_pos
+                                self.ghost_render_positions[index] = (
+                                    pygame.Vector2(ghost.spawn_pos)
+                                )
+                                ghost.is_eaten = False
+                            continue
+                        if (
+                            ghost.state == "Frightened"
+                            and now - ghost.frightened_time
+                            >= self.FRIGHTENED_DURATION
+                        ):
+                            ghost.state = "chase"
+                        if ghost.state == "Frightened":
+                            target = ghost.get_escape_move(
+                                maze, self.player.current_pos
+                            )
+                        else:
+                            target = ghost.get_target_position(
+                                self.player, self.ghosts[0], maze
+                            )
+                        next_pos = ghost.move(maze, target)
+                        if next_pos is not None:
+                            ghost.current_pos = next_pos
+                    last_ghost_move = now
+                    ghost_moved = True
+
+                if (
+                    self.state == "playing"
+                    and self.game_state == "playing"
                     and now - last_move >= move_delay
                 ):
-                    maze = self._mazes[self._level_index]
-                    if now - last_ghost_move >= ghost_move_delay:
-                        for index, ghost in enumerate(self.ghosts):
-                            if ghost.is_eaten:
-                                if now - ghost.eaten_time >= self.EATEN_TIME:
-                                    ghost.state = "chase"
-                                    ghost.current_pos = ghost.spawn_pos
-                                    self.ghost_render_positions[index] = (
-                                        pygame.Vector2(ghost.spawn_pos)
-                                    )
-                                    ghost.is_eaten = False
-                                continue
-                            if (
-                                ghost.state == "Frightened"
-                                and now - ghost.frightened_time
-                                >= self.FRIGHTENED_DURATION
-                            ):
-                                ghost.state = "chase"
-                            if ghost.state == "Frightened":
-                                target = ghost.get_escape_move(
-                                    maze, self.player.current_pos
-                                )
-                            else:
-                                target = ghost.get_target_position(
-                                    self.player, self.ghosts[0], maze
-                                )
-                            next_pos = ghost.move(maze, target)
-                            if next_pos is not None:
-                                ghost.current_pos = next_pos
-                        last_ghost_move = now
-
                     self.player.move(maze)
                     interaction = InteractionManager(
                         self.player,
@@ -680,7 +686,3 @@ class MazeViewer(GameMixin, ScreensMixin):
             x_orange, y_orange = x4 + 1, y4 - 1
         ghosts_positions.append((x_orange, y_orange))
         return ghosts_positions
-
-    # def test(self):
-    #     for i in self.ghosts:
-    #         print(i.shortest_path(self.maze, self.player.current_pos))

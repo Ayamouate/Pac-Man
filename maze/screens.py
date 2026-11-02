@@ -125,34 +125,70 @@ class ScreensMixin:
         """Draw the final completion screen after every level is cleared."""
 
         surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
-        surface.fill((0, 0, 0, 175))
+        surface.fill((25, 14, 20, 150))
         screen.blit(surface, (0, 0))
 
-        panel = pygame.Surface((900, 330), pygame.SRCALPHA)
-        panel.fill((25, 55, 48, 245))
+        # Keep the victory screen in the same Sakura-styled visual language as
+        # the highscores and name-entry screens instead of introducing a
+        # one-off flat panel.
+        panel = pygame.transform.smoothscale(
+            self.highscore_panel, (820, 680)
+        )
         panel_rect = panel.get_rect(
             center=(self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] // 2)
         )
         screen.blit(panel, panel_rect)
 
-        title_font = pygame.font.Font(None, 82)
-        body_font = pygame.font.Font(None, 36)
-        title = title_font.render("VICTORY!", True, self.MENU_SELECTED)
-        score = body_font.render(
-            f"All {len(self._mazes)} levels cleared  -  Score: "
-            f"{self.player.score}",
-            True,
+        center_x = self.WINDOW_SIZE[0] // 2
+
+        def outlined_text(
+            text: str,
+            font: Any,
+            center: tuple[int, int],
+            fill: tuple[int, int, int],
+        ) -> None:
+            """Render the outlined lettering used by the other themed views."""
+
+            rendered = font.render(text, True, fill)
+            shadow = font.render(text, True, (57, 28, 31))
+            rect = rendered.get_rect(center=center)
+            for offset in ((4, 5), (3, 3), (-2, 2), (2, -2)):
+                screen.blit(shadow, rect.move(*offset))
+            screen.blit(rendered, rect)
+
+        title_font = pygame.font.SysFont("dejavusans", 58, bold=True)
+        heading_font = pygame.font.SysFont("dejavusans", 27, bold=True)
+        score_font = pygame.font.SysFont("dejavusans", 34, bold=True)
+        hint_font = pygame.font.SysFont("lora", 22)
+
+        outlined_text(
+            "VICTORY!",
+            title_font,
+            (center_x, panel_rect.top + 84),
+            (249, 191, 198),
+        )
+        outlined_text(
+            f"ALL {len(self._mazes)} LEVELS CLEARED",
+            heading_font,
+            (center_x, panel_rect.top + 252),
+            (255, 224, 220),
+        )
+        outlined_text(
+            f"SCORE  {self.player.score:06d}",
+            score_font,
+            (center_x, panel_rect.top + 330),
             self.MENU_TEXT,
         )
-        hint = body_font.render(
-            "Press ENTER to play again or ESC for the menu",
+
+        hint = hint_font.render(
+            "ENTER to play again  ·  ESC to return to menu",
             True,
-            self.MUTED_TEXT,
+            (231, 190, 193),
         )
-        center_x = self.WINDOW_SIZE[0] // 2
-        screen.blit(title, title.get_rect(center=(center_x, 365)))
-        screen.blit(score, score.get_rect(center=(center_x, 455)))
-        screen.blit(hint, hint.get_rect(center=(center_x, 525)))
+        screen.blit(
+            hint,
+            hint.get_rect(center=(center_x, panel_rect.bottom - 43)),
+        )
 
     def _draw_main_menu(self, pygame: Any, screen: Any) -> None:
         cord = [(547, 189), (558, 360), (543, 528), (555, 700)]

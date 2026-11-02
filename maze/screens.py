@@ -385,3 +385,4 @@ class ScreensMixin:
             hint,
             hint.get_rect(center=(550, panel_rect.bottom - 43)),
         )
+      

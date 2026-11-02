@@ -7,7 +7,7 @@ from maze.highscore import MAX_PLAYER_NAME_LENGTH
 from typing import Any
 from engine.ghost import Ghost
 import pygame
-
+from engine.cheat_mode import CheatMode
 
 class GameMixin:
     """Key handling, level changes, timer and reset logic."""
@@ -32,6 +32,7 @@ class GameMixin:
     highscore_manager: Any
     name_entry: str
     name_entry_return_state: str
+    cheat_mode : CheatMode
 
     def _get_ghost_spawn_positions(
         self, maze: Any
@@ -120,6 +121,10 @@ class GameMixin:
             return True
         if key == pygame.K_q:
             return False
+        elif key == pygame.K_f:
+            self.cheat_mode.freeze()
+        elif key == pygame.K_i:
+            self.cheat_mode.infinite_lives()
         if key == pygame.K_n:
             index = (self._level_index + 1) % len(self._mazes)
             self._change_level(index)

@@ -10,6 +10,7 @@ from maze.highscore import HighscoreManager
 from maze.game_logic import GameMixin
 from maze.screens import ScreensMixin
 from engine.ghost import Ghost
+from engine.cheat_mode import CheatMode
 
 
 Level = Mapping[str, Any]
@@ -93,6 +94,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.game_over_time: int | None = None
         self.last_direction: str | None = None
         self.game_over_reason: str | None = None
+        self.title = None
         self.start_ghosts_positions = self._get_ghost_spawn_positions(
             self.maze
         )
@@ -112,6 +114,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         ]
         self.player_render_pos: Any = None
         self.ghost_render_positions: list[Any] = []
+        self.cheat_mode = CheatMode()
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -191,6 +194,9 @@ class MazeViewer(GameMixin, ScreensMixin):
             ).convert_alpha()
         self.frightened_ghost = pygame.image.load(
                 "assets/edible.png"
+            ).convert_alpha()
+        self.title = pygame.image.load(
+                "assets/cheat_mode.png"
             ).convert_alpha()
         pygame.display.set_caption("Pac-Man Maze Viewer")
         title_font = pygame.font.Font(None, 32)
@@ -304,6 +310,9 @@ class MazeViewer(GameMixin, ScreensMixin):
                     self._draw(pygame, screen, title_font, info_font)
                     self._draw_pause_menu(pygame, screen)
                 elif self.state == "playing":
+                    if self.cheat_mode.infini_lives:
+                        self.player.lives = 3
+
                     self._draw(pygame, screen, title_font, info_font)
                 elif self.state == "over":
                     self._draw(pygame, screen, title_font, info_font)
@@ -385,6 +394,12 @@ class MazeViewer(GameMixin, ScreensMixin):
         )
         self._draw_player(pygame, screen, cell_size, origin_x, origin_y)
         self._draw_menu(pygame, screen)
+        if self.cheat_mode.infini_lives:
+                title = pygame.transform.scale(
+            self.title, (500, 400))
+                center=(self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] - 20)
+                title_rect = title.get_rect(center=center)
+                screen.blit(title, title_rect)
 
     def _layout(self, width: int, height: int) -> tuple[int, int, int]:
         window_width, window_height = self.WINDOW_SIZE

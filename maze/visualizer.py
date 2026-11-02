@@ -11,6 +11,7 @@ from maze.game_logic import GameMixin
 from maze.screens import ScreensMixin
 from engine.ghost import Ghost
 from engine.cheat_mode import CheatMode
+from audio.sound_manager import SoundManager
 
 
 Level = Mapping[str, Any]
@@ -117,6 +118,8 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.player_render_pos: Any = None
         self.ghost_render_positions: list[Any] = []
         self.cheat_mode = CheatMode()
+        self.sound_manager = SoundManager()
+        self._last_sound_state: str | None = None
 
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
@@ -132,6 +135,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             raise
 
         pygame.init()
+        self.sound_manager.load()
         screen = pygame.display.set_mode(self.WINDOW_SIZE)
 
         self.background = pygame.image.load(
@@ -231,6 +235,14 @@ class MazeViewer(GameMixin, ScreensMixin):
                         running = self._handle_key(
                             pygame, event.key, event.unicode
                         )
+
+                if self.state != self._last_sound_state:
+                    if self.state == "menu":
+                        self.sound_manager.play("menu_jingle")
+                    elif self.state == "over":
+                        self.sound_manager.play("game_over")
+                    self._last_sound_state = self.state
+
                 player_moved = False
                 ghost_moved = False
                 level_changed = False
@@ -281,9 +293,11 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.player,
                         self.pacgums.pacgums,
                         self.super_pacgums,
+                        self.sound_manager,
                     )
                     interaction.check_pacgum(self.ghosts)
                     if not self.pacgums.pacgums:
+                        self.sound_manager.play("level_clear")
                         if self._level_index == len(self._mazes) - 1:
                             self._start_end_state("victory")
                         else:
@@ -300,6 +314,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.player,
                         self.pacgums.pacgums,
                         self.super_pacgums,
+                        self.sound_manager,
                     )
                     if interaction.check_ghost_collision(self.ghosts):
                         if not self.player.is_alive():
@@ -307,6 +322,11 @@ class MazeViewer(GameMixin, ScreensMixin):
 
                             self.game_over_time = now // 1000
                             self._start_end_state("over")
+
+                if self.state in ("menu", "highscores", "instructions"):
+                    self.sound_manager.play_music()
+                else:
+                    self.sound_manager.stop_music()
 
                 self._update_render_positions(pygame, delta_time)
 
@@ -336,6 +356,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         finally:
             if self.video_background is not None:
                 self.video_background.stop()
+            self.sound_manager.stop_music()
             pygame.quit()
 
     def _update_render_positions(

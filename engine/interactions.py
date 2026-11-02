@@ -10,16 +10,26 @@ from engine.ghost import Ghost
 class InteractionManager:
 
     def __init__(
-        self, player: Player, pacgums: Any, super_pacgums: Any
+        self,
+        player: Player,
+        pacgums: Any,
+        super_pacgums: Any,
+        sound_manager: Any = None,
     ) -> None:
         self.player = player
         self.pacgums = pacgums
         self.super_pacgums = super_pacgums
+        self.sound_manager = sound_manager
+
+    def _play(self, name: str) -> None:
+        if self.sound_manager is not None:
+            self.sound_manager.play(name)
 
     def check_pacgum(self, ghosts: Sequence[Ghost]) -> None:
         if self.player.current_pos in self.pacgums:
             self.pacgums.discard(self.player.current_pos)
             self.player.add_score()
+            self._play("pacgum")
         elif self.player.current_pos in self.super_pacgums:
             self.super_pacgums.remove(self.player.current_pos)
             for ghost in ghosts:
@@ -28,6 +38,7 @@ class InteractionManager:
                 ghost.state = "Frightened"
                 ghost.frightened_time = pygame.time.get_ticks()
             self.player.add_super_score()
+            self._play("power_pellet")
 
     def check_ghost_collision(
         self,
@@ -49,9 +60,11 @@ class InteractionManager:
                     self.player.lose_life(current_time)
                     for ghost in ghosts:
                         ghost.current_pos = ghost.spawn_pos
+                    self._play("death")
                     return True
             ghost.is_eaten = True
             ghost.eaten_time = pygame.time.get_ticks()
             ghost.current_pos = ghost.spawn_pos
             self.player.add_ghost_score()
+            self._play("ghost_eaten")
         return False

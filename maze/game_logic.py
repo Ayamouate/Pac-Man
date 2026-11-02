@@ -34,6 +34,7 @@ class GameMixin:
     name_entry: str
     name_entry_return_state: str
     cheat_mode: CheatMode
+    sound_manager: Any
 
     def _get_ghost_spawn_positions(
         self, maze: Any
@@ -72,9 +73,12 @@ class GameMixin:
         if self.state == "menu":
             if key == pygame.K_UP:
                 self.selected = (self.selected - 1) % 4
+                self.sound_manager.play("menu_move")
             elif key == pygame.K_DOWN:
                 self.selected = (self.selected + 1) % 4
+                self.sound_manager.play("menu_move")
             elif key == pygame.K_RETURN:
+                self.sound_manager.play("menu_select")
                 if self.selected == 0:
                     self._reset_game()
                     self.state = "playing"

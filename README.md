@@ -26,6 +26,33 @@ with three seconds of ghost-collision protection. Clearing every regular and
 super pac-gum on the final level displays the victory screen; press Enter to
 play again or Esc to return to the menu.
 
+## Sound assets
+
+The game uses short, original-style arcade and UI effects from the CC0
+[Various Sound Effects set on OpenGameArt](https://opengameart.org/content/various-sound-effects-0).
+The files are renamed locally to describe their game event. The source names,
+creator, source page, and license are recorded here for reuse and auditing.
+
+| Game event | Local file | Source sound name | Creator | License |
+| --- | --- | --- | --- | --- |
+| Menu navigation | `audio/sounds/menu_move.wav` | `snd_menu_move.wav` | Julie Damsgaard / Spring Spring | CC0 |
+| Menu entry and selection jingle | `audio/sounds/menu_select.wav` | `snd_menu_select.wav` | Julie Damsgaard / Spring Spring | CC0 |
+| Pac-gum collected | `audio/sounds/pacgum_collect.wav` | `get_important_item.wav` | Julie Damsgaard / Spring Spring | CC0 |
+| Super pac-gum collected | `audio/sounds/power_pellet.wav` | `snd_getpowerup.wav` | Julie Damsgaard / Spring Spring | CC0 |
+| Ghost eaten | `audio/sounds/ghost_eaten.wav` | `pop.wav` | Julie Damsgaard / Spring Spring | CC0 |
+| Player loses a life | `audio/sounds/player_death.wav` | `player_hit.wav` | Julie Damsgaard / Spring Spring | CC0 |
+| Level cleared | `audio/sounds/level_clear.wav` | `snd_treasure.wav` | Julie Damsgaard / Spring Spring | CC0 |
+| Game over | `audio/sounds/game_over.wav` | `snd_death2.wav` | Julie Damsgaard / Spring Spring | CC0 |
+| Menu and highscores music | `audio/music/japanese_koto_loop.ogg` | `orient8.ogg` | Tozan | CC0 |
+
+These are not the original Namco recordings and no Namco sound files are
+included in the project.
+
+The Japanese koto track plays on the main menu, highscores, and instructions
+screens, repeats for longer sessions, and stops when gameplay begins. It comes from OpenGameArt's
+[Oriental8 koto tune](https://opengameart.org/content/oriental8), which is
+released under CC0 by Tozan.
+
 ## Configuration
 
 `config.json` is a JSON object. Full-line comments beginning with `#` or `//`

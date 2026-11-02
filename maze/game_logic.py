@@ -6,7 +6,8 @@ from engine.pacgums import Pacgums
 from maze.highscore import MAX_PLAYER_NAME_LENGTH
 from typing import Any
 from engine.ghost import Ghost
-
+import pygame
+from engine.cheat_mode import CheatMode
 
 class GameMixin:
     """Key handling, level changes, timer and reset logic."""
@@ -31,6 +32,7 @@ class GameMixin:
     highscore_manager: Any
     name_entry: str
     name_entry_return_state: str
+    cheat_mode : CheatMode
 
     def _get_ghost_spawn_positions(
         self, maze: Any
@@ -73,7 +75,7 @@ class GameMixin:
                 self.selected = (self.selected + 1) % 4
             elif key == pygame.K_RETURN:
                 if self.selected == 0:
-                    self._reset_game(pygame)
+                    self._reset_game()
                     self.state = "playing"
                 elif self.selected == 1:
                     self.state = "highscores"
@@ -87,7 +89,7 @@ class GameMixin:
 
         if self.state == "over":
             if key in (pygame.K_RETURN, pygame.K_ESCAPE):
-                self._reset_game(pygame)
+                self._reset_game()
                 self.state = "menu"
             elif key == pygame.K_q:
                 return False
@@ -95,10 +97,10 @@ class GameMixin:
 
         if self.state == "victory":
             if key == pygame.K_RETURN:
-                self._reset_game(pygame)
+                self._reset_game()
                 self.state = "playing"
             elif key == pygame.K_ESCAPE:
-                self._reset_game(pygame)
+                self._reset_game()
                 self.state = "menu"
             elif key == pygame.K_q:
                 return False
@@ -119,6 +121,10 @@ class GameMixin:
             return True
         if key == pygame.K_q:
             return False
+        elif key == pygame.K_f:
+            self.cheat_mode.freeze()
+        elif key == pygame.K_i:
+            self.cheat_mode.infinite_lives()
         if key == pygame.K_n:
             index = (self._level_index + 1) % len(self._mazes)
             self._change_level(index)
@@ -165,7 +171,7 @@ class GameMixin:
         self.highscore_manager.record(name, self.player.score)
         self.state = self.name_entry_return_state
 
-    def _reset_game(self, pygame: Any) -> None:
+    def _reset_game(self) -> None:
         self._change_level(0)
         self.player.lives = self.starting_lives
         self.player.score = 0
@@ -197,7 +203,6 @@ class GameMixin:
             ghost.spawn_pos = position
 
         self.player.direction = None
-
         self.pacgums = Pacgums(self.maze, self.player)
         self.super_pacgums = self.pacgums.super_pacgums
         pause_start = (
@@ -206,5 +211,6 @@ class GameMixin:
         self.pause_start = pause_start
         self.pause_total_time = 0
         self.last_direction = None
-        if now is not None:
-            self.start_time = now
+        # if now is not None:
+        #     self.start_time = now
+        self.start_time = pygame.time.get_ticks()

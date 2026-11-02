@@ -12,9 +12,8 @@ def main() -> None:
         raise ValueError("configuration file must be in json format")
     data = config_file(sys.argv[1]).read_file()
     mazes = generate_mazes(data["levels"], seed=data["seed"])
-    print(f"Loaded {len(mazes)} maze levels.")
+    print(f"\033[1;38;5;218m{len(mazes)} LEVELS LOADED. GET READY TO PLAY!\033[0m")
     MazeViewer(data, mazes).run()
-    # MazeViewer(data,mazes).test()
 
 
 if __name__ == "__main__":

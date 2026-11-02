@@ -9,6 +9,7 @@ from engine.ghost import Ghost
 import pygame
 from engine.cheat_mode import CheatMode
 
+
 class GameMixin:
     """Key handling, level changes, timer and reset logic."""
 
@@ -32,7 +33,7 @@ class GameMixin:
     highscore_manager: Any
     name_entry: str
     name_entry_return_state: str
-    cheat_mode : CheatMode
+    cheat_mode: CheatMode
 
     def _get_ghost_spawn_positions(
         self, maze: Any

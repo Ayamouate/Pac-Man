@@ -96,7 +96,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.game_over_time: int | None = None
         self.last_direction: str | None = None
         self.game_over_reason: str | None = None
-        self.title = None
+        self.title: Any = None
         self.start_ghosts_positions = self._get_ghost_spawn_positions(
             self.maze
         )
@@ -401,11 +401,10 @@ class MazeViewer(GameMixin, ScreensMixin):
         self._draw_player(pygame, screen, cell_size, origin_x, origin_y)
         self._draw_menu(pygame, screen)
         if self.cheat_mode.infini_lives:
-                title = pygame.transform.scale(
-            self.title, (500, 400))
-                center=(self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] - 20)
-                title_rect = title.get_rect(center=center)
-                screen.blit(title, title_rect)
+            title = pygame.transform.scale(self.title, (500, 400))
+            center = (self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] - 20)
+            title_rect = title.get_rect(center=center)
+            screen.blit(title, title_rect)
 
     def _layout(self, width: int, height: int) -> tuple[int, int, int]:
         window_width, window_height = self.WINDOW_SIZE

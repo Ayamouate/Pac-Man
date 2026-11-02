@@ -1,7 +1,5 @@
-from engine.player import Player
-
 class CheatMode:
-    def __init__(self):
+    def __init__(self) -> None:
         self.invincibility = False
         self.ghost_freeze = False
         self.infini_lives = False

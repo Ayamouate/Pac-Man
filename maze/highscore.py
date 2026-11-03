@@ -176,7 +176,7 @@ class HighscoreManager:
                 )
                 temporary_file.write("\n")
 
-            os.replace(temporary_path,self.path)
+            os.replace(temporary_path, self.path)
             return True
 
         except (

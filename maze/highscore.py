@@ -23,8 +23,7 @@ class HighscoreEntry:
         self.score = score
 
     def to_dict(self) -> dict[str, Any]:
-        """Return the entry in the format used by the JSON file."""
-
+        """Return the entry in JSON format."""
         return {"name": self.name, "score": self.score}
 
 
@@ -33,13 +32,17 @@ def validate_player_name(name: Any) -> str:
 
     if not isinstance(name, str):
         raise ValueError("Player name must be text")
+
     normalized = name.strip()
     if not normalized:
         raise ValueError("Player name cannot be empty")
+
     if len(normalized) > MAX_PLAYER_NAME_LENGTH:
         raise ValueError(
-            f"Player name must be at most {MAX_PLAYER_NAME_LENGTH} characters"
+            f"Player name must be at most "
+            f"{MAX_PLAYER_NAME_LENGTH} characters"
         )
+
     if _PLAYER_NAME_PATTERN.fullmatch(normalized) is None:
         raise ValueError(
             "Player name may contain only letters, numbers, and spaces"
@@ -49,7 +52,6 @@ def validate_player_name(name: Any) -> str:
 
 def validate_score(score: Any) -> int:
     """Validate a non-negative integer score."""
-
     if type(score) is not int or score < 0:
         raise ValueError("Score must be a non-negative integer")
     return score
@@ -58,7 +60,7 @@ def validate_score(score: Any) -> int:
 def sort_entries(
     entries: list[HighscoreEntry],
 ) -> list[HighscoreEntry]:
-    """Sort scores from highest to lowest and keep the top ten."""
+    """Sort scores from highest to lowest."""
 
     return sorted(
         entries,
@@ -68,7 +70,7 @@ def sort_entries(
 
 
 class HighscoreManager:
-    """Load, update, and safely persist the top ten high scores."""
+    """Load, update, and save the top ten high scores."""
 
     def __init__(self, filename: str) -> None:
         self.path = Path(filename)
@@ -76,17 +78,24 @@ class HighscoreManager:
         self.load()
 
     def get_entries(self) -> list[HighscoreEntry]:
-        """Return a copy of the current sorted leaderboard."""
-
+        """Return a copy of the current high scores."""
         return list(self._entries)
 
     def load(self) -> list[HighscoreEntry]:
-        """Load valid entries; missing or malformed files become empty."""
+        """Load valid scores from the JSON file."""
 
         try:
-            with self.path.open("r", encoding="utf-8") as highscore_file:
+            with self.path.open(
+                "r",
+                encoding="utf-8",
+            ) as highscore_file:
                 content = json.load(highscore_file)
-        except (OSError, UnicodeError, json.JSONDecodeError, TypeError):
+        except (
+            OSError,
+            UnicodeError,
+            json.JSONDecodeError,
+            TypeError,
+        ):
             self._entries = []
             return self.get_entries()
 
@@ -111,7 +120,7 @@ class HighscoreManager:
         return self.get_entries()
 
     def qualifies(self, score: Any) -> bool:
-        """Return whether a valid score belongs in the top ten."""
+        """Return whether a score belongs in the top ten."""
 
         try:
             score = validate_score(score)
@@ -123,10 +132,11 @@ class HighscoreManager:
         )
 
     def record(self, name: Any, score: Any) -> bool:
-        """Add a score and save it, returning whether saving succeeded."""
+        """Add a score and save it."""
 
         entry = HighscoreEntry(
-            validate_player_name(name), validate_score(score)
+            validate_player_name(name),
+            validate_score(score),
         )
         previous_entries = self._entries
         self._entries = sort_entries([*self._entries, entry])
@@ -136,11 +146,16 @@ class HighscoreManager:
         return False
 
     def save(self) -> bool:
-        """Atomically save the leaderboard without crashing on file errors."""
+        """Save the high scores safely."""
 
         temporary_path: Path | None = None
+
         try:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
             with tempfile.NamedTemporaryFile(
                 mode="w",
                 encoding="utf-8",
@@ -150,18 +165,29 @@ class HighscoreManager:
                 delete=False,
             ) as temporary_file:
                 temporary_path = Path(temporary_file.name)
+
                 json.dump(
-                    [entry.to_dict() for entry in self._entries],
+                    [
+                        entry.to_dict()
+                        for entry in self._entries
+                    ],
                     temporary_file,
                     indent=2,
                 )
                 temporary_file.write("\n")
-            os.replace(temporary_path, self.path)
+
+            os.replace(temporary_path,self.path)
             return True
-        except (OSError, TypeError, ValueError):
+
+        except (
+            OSError,
+            TypeError,
+            ValueError,
+        ):
             if temporary_path is not None:
                 try:
                     temporary_path.unlink(missing_ok=True)
                 except OSError:
                     pass
+
             return False

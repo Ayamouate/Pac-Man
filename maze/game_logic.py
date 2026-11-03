@@ -33,6 +33,7 @@ class GameMixin:
     highscore_manager: Any
     name_entry: str
     name_entry_return_state: str
+    name_entry_pending: bool
     cheat_mode: CheatMode
     sound_manager: Any
 
@@ -93,7 +94,10 @@ class GameMixin:
             return True
 
         if self.state == "over":
-            if key in (pygame.K_RETURN, pygame.K_ESCAPE):
+            if key == pygame.K_RETURN and self.name_entry_pending:
+                self.name_entry = ""
+                self.state = "name_entry"
+            elif key in (pygame.K_RETURN, pygame.K_ESCAPE):
                 self._reset_game()
                 self.state = "menu"
             elif key == pygame.K_q:
@@ -101,7 +105,10 @@ class GameMixin:
             return True
 
         if self.state == "victory":
-            if key == pygame.K_RETURN:
+            if key == pygame.K_RETURN and self.name_entry_pending:
+                self.name_entry = ""
+                self.state = "name_entry"
+            elif key == pygame.K_RETURN:
                 self._reset_game()
                 self.state = "playing"
             elif key == pygame.K_ESCAPE:
@@ -160,21 +167,20 @@ class GameMixin:
         return True
 
     def _start_end_state(self, state: str) -> None:
-        """Show name entry before an end screen when the score qualifies."""
+        """Show the end screen before asking for the player's name."""
 
         self.name_entry_return_state = state
-        if self.highscore_manager.qualifies(self.player.score):
-            self.name_entry = ""
-            self.state = "name_entry"
-        else:
-            self.state = state
+        self.name_entry_pending = True
+        self.name_entry = ""
+        self.state = state
 
     def _save_name_entry(self) -> None:
-        """Persist the entered name and continue to the end screen."""
+        """Persist the entered name and open the highscores screen."""
 
         name = self.name_entry.strip() or "PLAYER"
         self.highscore_manager.record(name, self.player.score)
-        self.state = self.name_entry_return_state
+        self.name_entry_pending = False
+        self.state = "highscores"
 
     def _reset_game(self) -> None:
         self._change_level(0)
@@ -186,6 +192,7 @@ class GameMixin:
         self.pause_total_time = 0
         self.last_direction = None
         self.game_over_reason = None
+        self.name_entry_pending = False
         self.start_time = pygame.time.get_ticks()
 
     def _timer_expired(self, now: int) -> bool:

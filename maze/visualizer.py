@@ -59,6 +59,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.highscore_manager = HighscoreManager(data["highscore_filename"])
         self.name_entry = ""
         self.name_entry_return_state = "over"
+        self.name_entry_pending = False
         self._level_index = 0
         self.maze = self._mazes[self._level_index]
         self.player = Player(
@@ -323,7 +324,9 @@ class MazeViewer(GameMixin, ScreensMixin):
                             self.game_over_time = now // 1000
                             self._start_end_state("over")
 
-                if self.state in ("menu", "highscores", "instructions"):
+                if self.state in (
+                    "menu", "highscores", "instructions", "playing"
+                ):
                     self.sound_manager.play_music()
                 else:
                     self.sound_manager.stop_music()

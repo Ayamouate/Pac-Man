@@ -6,7 +6,7 @@ import pygame
 
 class SoundManager:
 
-    MUSIC_FILE: Final[str] = "japanese_koto_loop.ogg"
+    MUSIC_FILE: Final[str] = "music.wav"
 
     SOUND_FILES: Final[dict[str, str]] = {
         "menu_move": "menu_move.wav",
@@ -18,6 +18,18 @@ class SoundManager:
         "death": "player_death.wav",
         "level_clear": "level_clear.wav",
         "game_over": "game_over.wav",
+    }
+
+    SOUND_VOLUMES: Final[dict[str, float]] = {
+        "pacgum": 0.15,
+        "power_pellet": 0.30,
+        "game_over": 0.35,
+        "menu_select": 0.35,
+        "menu_jingle": 0.35,
+        "menu_move": 0.35,
+        "level_clear": 0.35,
+        "death": 0.30,
+        "ghost_eaten": 0.35,
     }
 
     def __init__(self, sound_dir: Path | None = None) -> None:
@@ -43,9 +55,11 @@ class SoundManager:
 
         for name, filename in self.SOUND_FILES.items():
             try:
-                self.sounds[name] = pygame.mixer.Sound(
+                sound = pygame.mixer.Sound(
                     str(self.sound_dir / filename)
                 )
+                sound.set_volume(self.SOUND_VOLUMES.get(name, 1.0))
+                self.sounds[name] = sound
             except (pygame.error, OSError, FileNotFoundError):
                 # A missing or unsupported asset should not stop the game.
                 continue

@@ -26,6 +26,7 @@ class ScreensMixin:
     highscore_manager: Any
     selected: int
     name_entry: str
+    name_entry_pending: bool
 
     def _inside(self, maze: Any, x: int, y: int) -> bool:
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
@@ -93,8 +94,13 @@ class ScreensMixin:
                 True,
                 (255, 248, 245),
             )
+            hint_text = (
+                "Press ENTER to enter your name"
+                if self.name_entry_pending
+                else "Press ENTER to return to the main menu"
+            )
             hint = hint_font.render(
-                "Press ENTER to return to the main menu",
+                hint_text,
                 True,
                 (231, 190, 193),
             )
@@ -119,6 +125,36 @@ class ScreensMixin:
             center=(self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] // 2)
         )
         screen.blit(image, rect)
+
+        # The artwork includes its own old instruction text. Cover that area
+        # so the instruction matches the current name-entry flow.
+        artwork_fill = (47, 24, 23)
+        message_area = pygame.Rect(rect.left + 155, rect.top + 65, 590, 88)
+        pygame.draw.rect(screen, artwork_fill, message_area)
+
+        body_font = pygame.font.SysFont("dejavusans", 25, bold=True)
+        hint_font = pygame.font.SysFont("dejavusans", 19)
+        message = body_font.render(
+            "ALL LIVES LOST",
+            True,
+            (255, 248, 245),
+        )
+        hint_text = (
+            "Press ENTER to enter your name"
+            if self.name_entry_pending
+            else "Press ENTER to return to the main menu"
+        )
+        hint = hint_font.render(hint_text, True, (231, 190, 193))
+        screen.blit(
+            message,
+            message.get_rect(
+                center=(self.WINDOW_SIZE[0] // 2, rect.top + 101)
+            ),
+        )
+        screen.blit(
+            hint,
+            hint.get_rect(center=(self.WINDOW_SIZE[0] // 2, rect.top + 131)),
+        )
 
     def _draw_victory(self, pygame: Any, screen: Any) -> None:
         """Draw the final completion screen after every level is cleared."""
@@ -179,8 +215,13 @@ class ScreensMixin:
             self.MENU_TEXT,
         )
 
+        hint_text = (
+            "ENTER to enter your name"
+            if self.name_entry_pending
+            else "ENTER to play again  ·  ESC to return to menu"
+        )
         hint = hint_font.render(
-            "ENTER to play again  ·  ESC to return to menu",
+            hint_text,
             True,
             (231, 190, 193),
         )

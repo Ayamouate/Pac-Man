@@ -23,8 +23,9 @@ FFmpeg is unavailable, the viewer falls back to `assets/Bg.jpeg`.
 Each level must be completed before `level_max_time` seconds elapse. Running
 out of time ends the game. Losing a life respawns Pac-Man at the level start
 with three seconds of ghost-collision protection. Clearing every regular and
-super pac-gum on the final level displays the victory screen; press Enter to
-play again or Esc to return to the menu.
+super pac-gum on the final level displays the victory screen. The end screen
+appears first; press Enter to enter a name, then press Enter again to
+continue to the highscores screen. The leaderboard keeps its top ten scores.
 
 ## Sound assets
 
@@ -43,15 +44,14 @@ creator, source page, and license are recorded here for reuse and auditing.
 | Player loses a life | `audio/sounds/player_death.wav` | `player_hit.wav` | Julie Damsgaard / Spring Spring | CC0 |
 | Level cleared | `audio/sounds/level_clear.wav` | `snd_treasure.wav` | Julie Damsgaard / Spring Spring | CC0 |
 | Game over | `audio/sounds/game_over.wav` | `snd_death2.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Menu and highscores music | `audio/music/japanese_koto_loop.ogg` | `orient8.ogg` | Tozan | CC0 |
+| Menu and highscores music | `audio/music/music.wav` | User-provided track | — | — |
 
 These are not the original Namco recordings and no Namco sound files are
 included in the project.
 
-The Japanese koto track plays on the main menu, highscores, and instructions
-screens, repeats for longer sessions, and stops when gameplay begins. It comes from OpenGameArt's
-[Oriental8 koto tune](https://opengameart.org/content/oriental8), which is
-released under CC0 by Tozan.
+The user-provided track plays on the main menu, highscores, instructions, and
+gameplay screens, repeats for longer sessions, and stops on the game-over and
+victory screens. The game loads it from `audio/music/music.wav`.
 
 ## Configuration
 

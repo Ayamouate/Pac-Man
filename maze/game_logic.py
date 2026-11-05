@@ -60,6 +60,10 @@ class GameMixin:
                 self.name_entry += text.upper()
             return True
 
+        if key == pygame.K_m:
+            self.sound_manager.toggle_music()
+            return True
+
         moves = {
             pygame.K_UP: "up",
             pygame.K_w: "up",
@@ -128,6 +132,12 @@ class GameMixin:
                 self.state = "menu"
             return True
 
+        if self.state == "playing" and key in (
+            pygame.K_ESCAPE,
+            pygame.K_q,
+        ):
+            # Leaving an active game is only available from the pause menu.
+            return True
         if key == pygame.K_ESCAPE:
             self.state = "menu"
             return True
@@ -145,7 +155,11 @@ class GameMixin:
             index = (self._level_index - 1) % len(self._mazes)
             self._change_level(index)
             return True
-        elif key == pygame.K_p and self.state == "playing":
+        elif (
+            key == pygame.K_p
+            and self.state == "playing"
+            and self.game_state == "playing"
+        ):
             self.last_direction = self.player.direction
             self.player.direction = None
             self.pause_start = pygame.time.get_ticks()

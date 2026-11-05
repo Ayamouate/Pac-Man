@@ -271,7 +271,7 @@ class ScreensMixin:
     def _draw_highscores(self, pygame: Any, screen: Any) -> None:
         """Draw the shared leaderboard loaded from the high-score file."""
 
-        screen.blit(self.background, (0, 0))
+        self._draw_background(pygame, screen)
         title = pygame.transform.smoothscale(
             self.highscore_title, (820, 159)
         )
@@ -365,7 +365,7 @@ class ScreensMixin:
     def _draw_name_entry(self, pygame: Any, screen: Any) -> None:
         """Draw the Sakura-styled name entry screen for a new high score."""
 
-        screen.blit(self.background, (0, 0))
+        self._draw_background(pygame, screen)
 
         title_font = pygame.font.SysFont("dejavusans", 56, bold=True)
         heading_font = pygame.font.SysFont("dejavusans", 27, bold=True)

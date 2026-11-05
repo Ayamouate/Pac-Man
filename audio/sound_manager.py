@@ -41,6 +41,7 @@ class SoundManager:
         self.music_available = False
         self.music_started = False
         self.music_paused = False
+        self.music_muted = False
 
     def load(self) -> None:
         """Initialize the mixer and load the bundled effects if possible."""
@@ -73,7 +74,11 @@ class SoundManager:
     def play_music(self) -> None:
         """Start the gameplay loop, or resume it after a pause."""
 
-        if not self.enabled or not self.music_available:
+        if (
+            not self.enabled
+            or not self.music_available
+            or self.music_muted
+        ):
             return
         try:
             if self.music_paused:
@@ -94,6 +99,16 @@ class SoundManager:
                 self.music_paused = True
         except pygame.error:
             pass
+
+    def toggle_music(self) -> bool:
+        """Mute or unmute the music and return the new muted state."""
+
+        self.music_muted = not self.music_muted
+        if self.music_muted:
+            self.pause_music()
+        else:
+            self.play_music()
+        return self.music_muted
 
     def stop_music(self) -> None:
         if not self.music_available:

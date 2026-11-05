@@ -12,6 +12,7 @@ from maze.screens import ScreensMixin
 from engine.ghost import Ghost
 from engine.cheat_mode import CheatMode
 from audio.sound_manager import SoundManager
+from maze.animated_background import AnimatedBackground
 
 
 Level = Mapping[str, Any]
@@ -193,6 +194,9 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.pacgums_image = pygame.image.load(
                 "assets/pacgum.png"
             ).convert_alpha()
+        self.video_background = AnimatedBackground(
+            pygame, self.background, self.pacgums_image
+        )
         self.super_pacgums_image = pygame.image.load(
                 "assets/super_pacgum.png"
             ).convert_alpha()
@@ -408,17 +412,22 @@ class MazeViewer(GameMixin, ScreensMixin):
         size_super = int(cell_size * 0.7)
         image = pygame.transform.scale(self.pacgums_image, (size, size))
         image_super = pygame.transform.scale(
-            self.super_pacgums_image, (size_super, size_super))
-        for k, p in self.super_pacgums:
-            center_x = origin_x + k * cell_size + cell_size // 2
-            center_y = origin_y + p * cell_size + cell_size // 2
-            screen.blit(image_super, (center_x - size_super //
-                        2, center_y - size_super // 2))
+            self.super_pacgums_image, (size_super, size_super)
+        )
+        for x, y in self.super_pacgums:
+            center_x = origin_x + x * cell_size + cell_size // 2
+            center_y = origin_y + y * cell_size + cell_size // 2
+            screen.blit(
+                image_super,
+                (center_x - size_super // 2, center_y - size_super // 2),
+            )
 
         for x, y in self.pacgums.pacgums:
             center_x = origin_x + x * cell_size + cell_size // 2
             center_y = origin_y + y * cell_size + cell_size // 2
-            screen.blit(image, (center_x - size // 2, center_y - size // 2))
+            screen.blit(
+                image, (center_x - size // 2, center_y - size // 2)
+            )
         self._draw_ghosts(
             pygame, screen, cell_size, origin_x, origin_y
         )

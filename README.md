@@ -12,13 +12,14 @@ python3 pac-man.py config.json
 ```
 
 The viewer opens with a main menu. Use Up/Down and Enter to select an option.
-During the game, use Arrow keys or WASD to move, N/B to change levels, Esc to
-return to the menu, and Q to quit. Press P to pause; the level timer does not
-run while paused.
+During the game, use Arrow keys or WASD to move, N/B to change levels, and P
+to pause. While paused, press 1 to resume or 2 to return to the main menu; Esc
+and Q do not abandon an active game. Press M to mute or unmute the music. Use
+Ctrl+C in the terminal to exit the program.
 
-The `assets/tree_wind.mp4` file is played in a loop as the background. Run
-`make install` to install the bundled FFmpeg helper used for playback. If
-FFmpeg is unavailable, the viewer falls back to `assets/Bg.jpeg`.
+The `assets/Bg.jpeg` image stays still while small copies of the pac-gum leaf
+drift and flutter across the background. The pac-gums inside the maze remain
+fixed for predictable gameplay.
 
 Each level must be completed before `level_max_time` seconds elapse. Running
 out of time ends the game. Losing a life respawns Pac-Man at the level start

@@ -20,8 +20,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # try:
-    main()
-    # except Exception as error:
-    #     print(f"Error: {error}", file=sys.stderr)
-    #     raise SystemExit(1)
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nExiting Pac-Man.")

@@ -43,10 +43,11 @@ class InteractionManager:
     def check_ghost_collision(
         self,
         ghosts: Sequence[Ghost],
-        current_time: float | None = None,
+        invincibility: bool
     ) -> bool:
-        if current_time is None:
-            current_time = time.monotonic()
+        if invincibility:
+            return False
+        current_time = time.monotonic()
         if self.player.is_respawn_protected(current_time):
             return False
 

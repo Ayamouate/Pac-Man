@@ -275,13 +275,19 @@ class MazeViewer(GameMixin, ScreensMixin):
                         ):
                             ghost.state = "chase"
                         if ghost.state == "Frightened":
-                            target = ghost.get_escape_move(
-                                maze, self.player.current_pos
-                            )
+                            if self.cheat_mode.freeze:
+                                target = ghost.current_pos
+                            else:
+                                target = ghost.get_escape_move(
+                                    maze, self.player.current_pos
+                                )
                         else:
-                            target = ghost.get_target_position(
-                                self.player, self.ghosts[0], maze
-                            )
+                            if self.cheat_mode.freeze:
+                                target = ghost.current_pos
+                            else:
+                                target = ghost.get_target_position(
+                                    self.player, self.ghosts[0], maze
+                                )
                         next_pos = ghost.move(maze, target)
                         if next_pos is not None:
                             ghost.current_pos = next_pos
@@ -321,7 +327,8 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.super_pacgums,
                         self.sound_manager,
                     )
-                    if interaction.check_ghost_collision(self.ghosts):
+                        
+                    if interaction.check_ghost_collision(self.ghosts, self.cheat_mode.invincibility):
                         if not self.player.is_alive():
                             self.game_over_reason = "lives"
 
@@ -340,18 +347,17 @@ class MazeViewer(GameMixin, ScreensMixin):
                 if self.state == "menu":
                     self._draw_main_menu(pygame, screen)
                 elif self.state == "playing" and self.game_state == "pause":
-                    self._draw(pygame, screen, title_font, info_font)
+                    self._draw(pygame, screen)
                     self._draw_pause_menu(pygame, screen)
                 elif self.state == "playing":
-                    if self.cheat_mode.infini_lives:
+                    if self.cheat_mode.infinite_lives:
                         self.player.lives = 3
-
-                    self._draw(pygame, screen, title_font, info_font)
+                    self._draw(pygame, screen)
                 elif self.state == "over":
-                    self._draw(pygame, screen, title_font, info_font)
+                    self._draw(pygame, screen)
                     self._draw_game_over(pygame, screen)
                 elif self.state == "victory":
-                    self._draw(pygame, screen, title_font, info_font)
+                    self._draw(pygame, screen)
                     self._draw_victory(pygame, screen)
                 elif self.state == "instructions":
                     self._instructions(pygame, screen)
@@ -396,7 +402,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                 )
 
     def _draw(
-        self, pygame: Any, screen: Any, title_font: Any, info_font: Any
+        self, pygame: Any, screen: Any
     ) -> None:
         self._draw_background(pygame, screen)
         maze = self._mazes[self._level_index]
@@ -433,7 +439,11 @@ class MazeViewer(GameMixin, ScreensMixin):
         )
         self._draw_player(pygame, screen, cell_size, origin_x, origin_y)
         self._draw_menu(pygame, screen)
-        if self.cheat_mode.infini_lives:
+        if  any([
+            self.cheat_mode.freeze,
+            self.cheat_mode.infinite_lives,
+            self.cheat_mode.invincibility
+            ]):
             title = pygame.transform.scale(self.title, (500, 400))
             center = (self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] - 20)
             title_rect = title.get_rect(center=center)

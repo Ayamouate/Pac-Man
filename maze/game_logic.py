@@ -136,6 +136,7 @@ class GameMixin:
             pygame.K_ESCAPE,
             pygame.K_q,
         ):
+            self.state = "menu"
             # Leaving an active game is only available from the pause menu.
             return True
         if key == pygame.K_ESCAPE:
@@ -144,9 +145,11 @@ class GameMixin:
         if key == pygame.K_q:
             return False
         elif key == pygame.K_f:
-            self.cheat_mode.freeze()
+            self.cheat_mode.toggle_freeze()
         elif key == pygame.K_i:
-            self.cheat_mode.infinite_lives()
+            self.cheat_mode.toggle_infinite_lives()
+        elif key == pygame.K_v:
+            self.cheat_mode.toggle_invincibility()
         if key == pygame.K_n:
             index = (self._level_index + 1) % len(self._mazes)
             self._change_level(index)

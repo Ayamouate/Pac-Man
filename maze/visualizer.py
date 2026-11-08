@@ -123,6 +123,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.sound_manager = SoundManager()
         self._last_sound_state: str | None = None
 
+
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
 
@@ -210,8 +211,6 @@ class MazeViewer(GameMixin, ScreensMixin):
                 "assets/cheat_mode.png"
             ).convert_alpha()
         pygame.display.set_caption("Pac-Man Maze Viewer")
-        title_font = pygame.font.Font(None, 32)
-        info_font = pygame.font.Font(None, 24)
         clock = pygame.time.Clock()
         last_move = pygame.time.get_ticks()
         self.start_time = last_move
@@ -439,15 +438,8 @@ class MazeViewer(GameMixin, ScreensMixin):
         )
         self._draw_player(pygame, screen, cell_size, origin_x, origin_y)
         self._draw_menu(pygame, screen)
-        if  any([
-            self.cheat_mode.freeze,
-            self.cheat_mode.infinite_lives,
-            self.cheat_mode.invincibility
-            ]):
-            title = pygame.transform.scale(self.title, (500, 400))
-            center = (self.WINDOW_SIZE[0] // 2, self.WINDOW_SIZE[1] - 20)
-            title_rect = title.get_rect(center=center)
-            screen.blit(title, title_rect)
+        if self.cheat_mode.active:
+            self._draw_cheat_mode_menu(screen, pygame)
 
     def _layout(self, width: int, height: int) -> tuple[int, int, int]:
         window_width, window_height = self.WINDOW_SIZE
@@ -461,7 +453,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         maze_width = width * cell_size
         maze_height = height * cell_size
         origin_x = (window_width - maze_width) // 2
-        origin_y = 30 + (
+        origin_y = 10 + (
             window_height - maze_height
         ) // 2
         return cell_size, origin_x, origin_y
@@ -578,7 +570,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             - (4 * panel_width + 3 * gap)
         ) // 2
 
-        y = 25
+        y = 10
 
         for i in range(4):
             panel = pygame.transform.scale(
@@ -742,3 +734,41 @@ class MazeViewer(GameMixin, ScreensMixin):
             x_orange, y_orange = x4 + 1, y4 - 1
         ghosts_positions.append((x_orange, y_orange))
         return ghosts_positions
+    
+    def _draw_cheat_mode_menu(self, screen, pygame) -> None:
+        small = pygame.font.SysFont("dejavusans", 14, bold=True)
+        rows = [
+            ("V", "Invincible", self.cheat_mode.invincibility),
+            ("F", "Freeze", self.cheat_mode.freeze),
+            ("I", "add lives", self.cheat_mode.infinite_lives),
+            ("N", "Skip level", self.cheat_mode.level_skip),
+        ]
+        on_color = (30, 90, 40)
+        off_color = (128, 0, 32)
+        panel_w, panel_h, gap = 160, 50, 8
+        start_x = (
+            self.WINDOW_SIZE[0]
+            - (4 * panel_w + 3 * gap)
+        ) // 2
+
+        y =  850
+        for i, (key, name, flag) in enumerate(rows):
+            x = start_x + i * (panel_w + gap)
+            panel = pygame.transform.scale(self.hud, (panel_w, panel_h))
+            screen.blit(panel, (x, y))
+            label = small.render(f"[{key}] {name}", True, self.TEXT)
+            screen.blit(
+                label,
+                label.get_rect(midleft=(x + 14, y + panel_h // 2)),
+            )
+            status = small.render(
+                "ON" if flag else "OFF",
+                True,
+                on_color if flag else off_color,
+            )
+            screen.blit(
+                status,
+                status.get_rect(
+                    midright=(x + panel_w - 14, y + panel_h // 2)
+                ),
+            )

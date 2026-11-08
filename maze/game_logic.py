@@ -144,20 +144,31 @@ class GameMixin:
             return True
         if key == pygame.K_q:
             return False
-        elif key == pygame.K_f:
-            self.cheat_mode.toggle_freeze()
-        elif key == pygame.K_i:
-            self.cheat_mode.toggle_infinite_lives()
-        elif key == pygame.K_v:
-            self.cheat_mode.toggle_invincibility()
-        if key == pygame.K_n:
-            index = (self._level_index + 1) % len(self._mazes)
-            self._change_level(index)
-            return True
-        elif key == pygame.K_b:
-            index = (self._level_index - 1) % len(self._mazes)
-            self._change_level(index)
-            return True
+        if key == pygame.K_c:
+            if self.cheat_mode.active:
+                self.cheat_mode.toggle_freeze()
+                self.cheat_mode.toggle_infinite_lives()
+                self.cheat_mode.toggle_invincibility()
+                self.cheat_mode.toggle_level_skip()
+            self.cheat_mode.cheate_mode_active()
+        if self.cheat_mode.active:
+                if key == pygame.K_f:
+                    self.cheat_mode.toggle_freeze()
+                    return True
+                elif key == pygame.K_i:
+                    self.cheat_mode.toggle_infinite_lives()
+                    return True
+                elif key == pygame.K_v:
+                    self.cheat_mode.toggle_invincibility()
+                    return True
+                elif key == pygame.K_n:
+                    self.cheat_mode.toggle_level_skip()
+                    index = self._level_index + 1
+                    if self._level_index == len(self._mazes) - 1:
+                        self._start_end_state("victory")
+                    else:
+                        self._change_level(index)
+                    return True
         elif (
             key == pygame.K_p
             and self.state == "playing"

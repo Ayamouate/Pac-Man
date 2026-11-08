@@ -5,7 +5,10 @@ class CheatMode:
         self.infinite_lives = False
         self.speed_boost = False
         self.level_skip = False
+        self.active = False
 
+    def cheate_mode_active(self) -> None:
+        self.active = not self.active
     def toggle_infinite_lives(self) -> None:
         self.infinite_lives = not self.infinite_lives
 
@@ -17,5 +20,3 @@ class CheatMode:
 
     def toggle_level_skip(self) -> None:
         self.level_skip = not self.level_skip
-    
-

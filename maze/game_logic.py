@@ -137,6 +137,9 @@ class GameMixin:
             pygame.K_q,
         ):
             self.state = "menu"
+            if self.cheat_mode.active:
+                self.cheat_mode.cheate_mode_active()
+                self._reset_cheat_modes()
             # Leaving an active game is only available from the pause menu.
             return True
         if key == pygame.K_ESCAPE:
@@ -146,10 +149,7 @@ class GameMixin:
             return False
         if key == pygame.K_c:
             if self.cheat_mode.active:
-                self.cheat_mode.toggle_freeze()
-                self.cheat_mode.toggle_infinite_lives()
-                self.cheat_mode.toggle_invincibility()
-                self.cheat_mode.toggle_level_skip()
+                self._reset_cheat_modes()
             self.cheat_mode.cheate_mode_active()
         if self.cheat_mode.active:
                 if key == pygame.K_f:
@@ -162,7 +162,7 @@ class GameMixin:
                     self.cheat_mode.toggle_invincibility()
                     return True
                 elif key == pygame.K_n:
-                    self.cheat_mode.toggle_level_skip()
+                    self.cheat_mode.level_skip = True
                     index = self._level_index + 1
                     if self._level_index == len(self._mazes) - 1:
                         self._start_end_state("victory")
@@ -209,7 +209,15 @@ class GameMixin:
         self.highscore_manager.record(name, self.player.score)
         self.name_entry_pending = False
         self.state = "highscores"
-
+    def _reset_cheat_modes(self):
+        if self.cheat_mode.infinite_lives:
+            self.cheat_mode.toggle_infinite_lives()
+        if self.cheat_mode.freeze:
+            self.cheat_mode.toggle_freeze()
+        if self.cheat_mode.invincibility:
+            self.cheat_mode.toggle_invincibility()
+        if self.cheat_mode.level_skip:
+            self.cheat_mode.level_skip = False
     def _reset_game(self) -> None:
         self._change_level(0)
         self.player.lives = self.starting_lives

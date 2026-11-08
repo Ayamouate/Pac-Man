@@ -17,6 +17,3 @@ class CheatMode:
 
     def toggle_invincibility(self) -> None:
         self.invincibility = not self.invincibility
-
-    def toggle_level_skip(self) -> None:
-        self.level_skip = not self.level_skip

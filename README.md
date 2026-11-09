@@ -1,81 +1,186 @@
-## Pac-Man maze generation
+*This project has been created as part of the 42 curriculum by `aymouate`,`mezahir`.*
 
-The project uses the assigned `mazegenerator` package without modifying it.
-The adapter in `maze/maze.py` passes each configured level size, the configured
-seed, and `perfect=False` so the generated maze has Pac-Man-compatible
-corridors.
+## 1. Description:
 
-Run the parser and Pygame viewer with:
+`Pacman` is a recreation of the classic arcade game, developed in **Python 3.13** using **Pygame** for graphics, rendering, animations, and player interaction, following an object-oriented and modular software architecture.
+
+The objective is to navigate through procedurally generated mazes, collect pac-gums and super-pac-gums, avoid or defeat four autonomous ghosts, and complete **10** levels while achieving the highest possible score.
+
+Each level features a new maze, with increasing challenges. Collecting a super-pac-gum temporarily makes ghosts vulnerable, allowing the player to eat them and earn extra points.
+
+The game includes a graphical interface with a main menu, instructions, pause menu, in-game HUD, game-over and victory screens, as well as a persistent top 10 highscore system. Additional features include JSON-based configuration and a cheat mode for testing and evaluation.
+
+## 2. Instructions:
+### Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd Pac-Man
+```
+
+Install the required dependencies:
+
+```bash
+make install
+```
+
+### Execution
+
+Run the game with a configuration file:
+
+```bash
+make run
+```
+
+Or launch it directly:
 
 ```bash
 python3 pac-man.py config.json
 ```
 
-The viewer opens with a main menu. Use Up/Down and Enter to select an option.
-During the game, use Arrow keys or WASD to move, N/B to change levels, and P
-to pause. While paused, press 1 to resume or 2 to return to the main menu; Esc
-and Q do not abandon an active game. Press M to mute or unmute the music. Use
-Ctrl+C in the terminal to exit the program.
+## 3.How to Play :
 
-The `assets/Bg.jpeg` image stays still while small copies of the pac-gum leaf
-drift and flutter across the background. The pac-gums inside the maze remain
-fixed for predictable gameplay.
+### Objective
 
-Each level must be completed before `level_max_time` seconds elapse. Running
-out of time ends the game. Losing a life respawns Pac-Man at the level start
-with three seconds of ghost-collision protection. Clearing every regular and
-super pac-gum on the final level displays the victory screen. The end screen
-appears first; press Enter to enter a name, then press Enter again to
-continue to the highscores screen. The leaderboard keeps its top ten scores.
+Navigate Pac-Man(Maomao) through the maze, collect all the Pacgums, and avoid being caught by the ghosts. Complete each level before the timer runs out and try to achieve the highest score!
 
-## Sound assets
+### Controls
 
-The game uses short, original-style arcade and UI effects from the CC0
-[Various Sound Effects set on OpenGameArt](https://opengameart.org/content/various-sound-effects-0).
-The files are renamed locally to describe their game event. The source names,
-creator, source page, and license are recorded here for reuse and auditing.
+| Key | Action |
+|---|---|
+| Arrow Keys / WASD | Move Pac-Man |
+| P | Pause / Resume |
+| ESC / Q | Return to Main Menu / Exit Game |
 
-| Game event | Local file | Source sound name | Creator | License |
-| --- | --- | --- | --- | --- |
-| Menu navigation | `audio/sounds/menu_move.wav` | `snd_menu_move.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Menu entry and selection jingle | `audio/sounds/menu_select.wav` | `snd_menu_select.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Pac-gum collected | `audio/sounds/pacgum_collect.wav` | `get_important_item.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Super pac-gum collected | `audio/sounds/power_pellet.wav` | `snd_getpowerup.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Ghost eaten | `audio/sounds/ghost_eaten.wav` | `pop.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Player loses a life | `audio/sounds/player_death.wav` | `player_hit.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Level cleared | `audio/sounds/level_clear.wav` | `snd_treasure.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Game over | `audio/sounds/game_over.wav` | `snd_death2.wav` | Julie Damsgaard / Spring Spring | CC0 |
-| Menu and highscores music | `audio/music/music.wav` | User-provided track | — | — |
+### Cheat Mode
 
-These are not the original Namco recordings and no Namco sound files are
-included in the project.
+Press **C** to open the Cheat Mode menu and access the following features:
 
-The user-provided track plays on the main menu, highscores, instructions, and
-gameplay screens, repeats for longer sessions, and stops on the game-over and
-victory screens. The game loads it from `audio/music/music.wav`.
+| Key | Action |
+|---|---|
+| F | Freeze / Unfreeze Ghosts |
+| I | Toggle Infinite Lives |
+| V | Toggle Invincibility |
+| N | Skip to the Next Level |
 
-## Configuration
+### Gameplay
 
-`config.json` is a JSON object. Full-line comments beginning with `#` or `//`
-are ignored. Missing or incorrectly typed top-level values use these defaults:
+- **Collect Pacgums:** Earn points by collecting regular Pacgums throughout the maze.
+- **Super Pacgums:** Activate frightened mode, allowing Pac-Man to eat ghosts for extra points.
+- **Avoid Ghosts:** Normal ghost collisions cost Pac-Man a life.
+- **Complete Levels:** Collect all Pacgums before the time limit expires to progress to the next level.
+- **Earn High Scores:** Your score is recorded in the Highscore table, where you can compete for a place in the Top 10.
+
+The game ends when all lives are lost or the player successfully completes the configured level progression.
+
+## 4.Configuration :
+
+The game uses a `config.json` file to customize its settings, including the number of lives, scoring system, Pacgums, level time limits, and maze generation parameters.
+
+
+### Configuration Structure
+
+The `config.json` file follows this structure:
 
 ```json
 {
-  "highscore_filename": "highscores.json",
-  "lives": 3,
-  "pacgum": 42,
-  "points_per_pacgum": 10,
-  "points_per_super_pacgum": 50,
-  "points_per_ghost": 200,
-  "seed": 42,
-  "level_max_time": 90,
-  "levels": [
-    {"width": 15, "height": 15}
-  ]
+    "highscore_filename": "highscores.json",
+    "lives": 3,
+    "pacgum": 42,
+    "points_per_pacgum": 10,
+    "points_per_super_pacgum": 50,
+    "points_per_ghost": 200,
+    "level_max_time": 90,
+    "levels": [
+        { "width": 15, "height": 15, "seed": 42 },
+        { "width": 19, "height": 21, "seed": 101 }
+    ]
 }
 ```
 
-`levels` is normalized to at least ten entries; additional configured levels
-are retained. Each entry contains an integer `width` and `height`; invalid
-width or height values use `15`. Unknown keys are ignored.
+### Configuration Parameters
 
+| Parameter | Description | Default Value |
+|---|---|---|
+| `highscore_filename` | File used to store high scores. | `highscores.json` |
+| `lives` | Initial number of player lives. | `3` |
+| `pacgum` | Number of regular Pacgums. | `42` |
+| `points_per_pacgum` | Points earned for collecting a regular Pacgum. | `10` |
+| `points_per_super_pacgum` | Points earned for collecting a Super Pacgum. | `50` |
+| `points_per_ghost` | Points earned for eating a frightened ghost. | `200` |
+| `level_max_time` | Maximum time allowed per level, in seconds. | `90` |
+| `levels` | List of maze configurations. | Defined in `config.json` |
+
+### Configuration Validation
+
+The configuration is validated when the game starts.
+
+- Missing configuration values are replaced with their default values.
+- Invalid values are rejected and replaced with safe defaults.
+- Missing or malformed configuration files are handled without crashing the game.
+- Unknown configuration keys are ignored.
+- Full-line comments beginning with `#` are supported.
+
+This validation ensures that the game can start safely even when the configuration file contains errors.
+
+## 5. Highscore System :
+
+The game includes a persistent Top 10 highscore system that stores players' names and scores in `highscores.json`.
+
+After a game ends, players can enter their names to save their scores. The leaderboard ranks entries from highest to lowest and keeps only the ten best scores.
+
+Player names are limited to 10 characters and accept only alphanumeric characters and spaces. Invalid or corrupted highscore data is handled safely.
+
+## 6. Maze Generation :
+
+The project uses the assigned **A-Maze-ing** package (`MazeGenerator`) to generate mazes dynamically. The game does not implement its own maze-generation algorithm; instead, it relies on the external package and integrates its output into the game.
+
+The maze-generation process is:
+
+1. `main()` reads the configuration file using `config_file()` and retrieves the configured levels and seed.
+2. `generate_mazes()` iterates through the level definitions and generates one maze for each level.
+3. `generate_maze()` validates the dimensions of each level, ensuring that the width and height are integers and that the maze is at least 3×3.
+4. The external `MazeGenerator` is initialized with the level dimensions, the corresponding seed, and `perfect=False`.
+5. Each level receives a reproducible seed calculated from the main seed and its level number.
+6. The generated maze is returned and passed to `MazeViewer`, which handles its visualization and gameplay integration.
+
+## 7. Implementation :
+
+The main implementation is based on the following mechanisms:
+
+1. **Game Initialization:** The application starts by loading and validating the JSON configuration file. It then generates the configured mazes and initializes the game with the selected settings, including player lives, scoring rules, and level information.
+
+2. **Game Loop:** The main loop continuously processes keyboard events, updates game entities, checks interactions, renders the current game state, and refreshes the display. A controlled frame rate ensures consistent gameplay.
+
+3. **Player Movement:** Pac-Man moves through the maze using keyboard controls. Movement is restricted by the maze structure to prevent the player from passing through walls.
+
+4. **Collectibles and Scoring:** Regular Pacgums and Super Pacgums are placed throughout the maze. When Pac-Man reaches a collectible, the interaction system detects the collision, removes the collectible, and updates the player's score according to its type.
+
+5. **Ghost Behavior:** Ghosts are implemented as independent entities with their own movement and behavior logic. Their interactions with Pac-Man are used to manage collisions, player lives.
+
+6. **Level and Game State Management:** The game handles level progression, remaining lives, and time limits. It also manages the different screens and states, including the main menu, pause, game over, and victory.
+
+7. **Score and High-Score Management:** The scoring system tracks points earned during gameplay, while the high-score system stores and displays the best results.
+
+## 8. Software Architecture :
+
+## 9. Project Management :
+
+## 10. Resources :
+
+* [Breadth-First Search (BFS) – GeeksforGeeks](https://www.geeksforgeeks.org/dsa/breadth-first-search-or-bfs-for-a-graph/)
+* [Pac-Man – Arcade Game](https://retro-arcade.fr/borne-darcade-pac-man/)
+* [Pygame Documentation](https://www.pygame.org/docs/)
+* [Python JSON Documentation](https://www.scrapingbee.com/blog/how-to-read-and-parse-json-data-with-python/?utm_source=google&utm_medium=cpc&utm_campaign=HD-ScrapingBee-PMax-Global-Prospecting&gad_source=1&gad_campaignid=23542351429&gbraid=0AAAAACSOZOOktddiFF4VwZKKD0A-0Har5&gclid=Cj0KCQiA-8XXBhDaARIsADnEOrD4BTRBCnlYOKVlU9-Bsd0dehYNlIAzGoYwrxvis53HiTk1FCBD_E4aAgLMEALw_wcB)
+* [PyInstaller](https://www.pyinstaller.org/en/stable/usage.html?utm_source=chatgpt.com)
+
+### AI Usage
+AI was used to :
+
+- Exploring ghost behaviors and different movement strategies.
+- Generating visual assets and images used in the game.
+- Exploring ideas and approaches for different game features.
+- Supporting us in planning the project, organizing tasks, dividing responsibilities, and coordinating our work throughout development.
+- Reviewing the README and improving technical documentation.

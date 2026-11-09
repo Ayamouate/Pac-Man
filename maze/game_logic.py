@@ -140,7 +140,6 @@ class GameMixin:
             if self.cheat_mode.active:
                 self.cheat_mode.cheate_mode_active()
                 self._reset_cheat_modes()
-            # Leaving an active game is only available from the pause menu.
             return True
         if key == pygame.K_ESCAPE:
             self.state = "menu"
@@ -209,7 +208,8 @@ class GameMixin:
         self.highscore_manager.record(name, self.player.score)
         self.name_entry_pending = False
         self.state = "highscores"
-    def _reset_cheat_modes(self):
+
+    def _reset_cheat_modes(self) -> None:
         if self.cheat_mode.infinite_lives:
             self.cheat_mode.toggle_infinite_lives()
         if self.cheat_mode.freeze:
@@ -218,6 +218,7 @@ class GameMixin:
             self.cheat_mode.toggle_invincibility()
         if self.cheat_mode.level_skip:
             self.cheat_mode.level_skip = False
+
     def _reset_game(self) -> None:
         self._change_level(0)
         self.player.lives = self.starting_lives

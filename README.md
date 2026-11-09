@@ -166,7 +166,45 @@ The main implementation is based on the following mechanisms:
 
 ## 8. Software Architecture :
 
+The project follows a modular, object-oriented architecture that separates the application's entry point, configuration handling, maze generation, gameplay logic, and visual presentation. Each module and class has a specific responsibility, making the code easier to maintain and extend.
+
+### A. Application Entry Point
+
+The `pac-man.py` file is the entry point of the application. It validates the command-line arguments and checks that the provided configuration file has a JSON extension.
+
+It then uses `config_file()` from the configuration parsing module to read the game configuration. The parsed data is passed to `generate_mazes()` from the maze module, which generates the levels using the configured seed. Finally, `pac-man.py` creates a `MazeViewer` instance with data and generated mazes, then calls its `run()` method to launch the game.
+
+### B. Main Game Controller
+
+The `MazeViewer` class, located in `maze.visualizer`, acts as the central controller. It initializes the main game components, manages the game loop, processes events, updates gameplay, and coordinates rendering.
+
+It uses multiple inheritance from two mixins:
+
+- **GameMixin:** Handles keyboard input, game-state transitions, level management, timers, game resets, and cheat-mode controls.
+- **ScreensMixin:** Handles the visual presentation of the main menu, instructions, pause menu, game-over screen, victory screen, highscores, and name-entry screen.
+
+### C. Gameplay Components
+
+The gameplay is organized into several classes:
+
+- **Player:** Manages the player's position, movement, direction, lives, and score. It uses the `Loader` class to check whether a movement is possible according to the maze walls.
+- **Ghost:** Represents the four ghosts and manages their movement and behavior. It uses Breadth-First Search (BFS) to find shortest paths and determine movement towards target positions. It also supports different targeting strategies and escape movement.
+- **Loader:** Checks the maze structure and determines whether a wall allows movement in a given direction.
+- **Pacgums:** Manages the collectible items in the maze.
+- **InteractionManager:** Handles interactions between the player, ghosts, and collectibles. It checks pacgum collection, super_pacgum effects, ghost collisions, and related score and sound effects.
+- **CheatMode:** Stores and manages the states of the available cheat modes, such as invincibility, freeze, and infinite lives.
+
+### D. Supporting Components
+
+Other classes provide additional game functionality:
+
+- **HighscoreManager:** Loads, validates, sorts, and saves the top ten scores. It uses `HighscoreEntry` to represent individual player records and stores the data in JSON format.
+- **HighscoreEntry:** Represents a single high-score entry containing a player's name and score.
+- **SoundManager:** Manages the game's music and sound effects.
+- **AnimatedBackground:** Provides the animated background used in the game.
+
 ## 9. Project Management :
+
 
 ## 10. Resources :
 

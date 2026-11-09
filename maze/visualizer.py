@@ -24,14 +24,10 @@ class MazeViewer(GameMixin, ScreensMixin):
     WINDOW_SIZE = (1100, 900)
     FRIGHTENED_DURATION = 10000
     EATEN_TIME = 4000
-
     HEADER_HEIGHT = 92
     PADDING = 24
     PLAYER_SPEED = 6.0
-    # Ghost decisions happen every 450 ms, so this carries each ghost across
-    # one cell without stopping between targets.
     GHOST_SPEED = 2.2
-
     BACKGROUND = (8, 10, 24)
     WALL = (107, 66, 38)
     FORTY_TWO_COLOR = (188, 173, 88)
@@ -99,7 +95,6 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.game_over_time: int | None = None
         self.last_direction: str | None = None
         self.game_over_reason: str | None = None
-        self.title: Any = None
         self.start_ghosts_positions = self._get_ghost_spawn_positions(
             self.maze
         )
@@ -206,9 +201,6 @@ class MazeViewer(GameMixin, ScreensMixin):
             ).convert_alpha()
         self.frightened_ghost = pygame.image.load(
                 "assets/edible.png"
-            ).convert_alpha()
-        self.title = pygame.image.load(
-                "assets/cheat_mode.png"
             ).convert_alpha()
         pygame.display.set_caption("Pac-Man Maze Viewer")
         clock = pygame.time.Clock()

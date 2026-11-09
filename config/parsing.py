@@ -5,7 +5,7 @@ from json import JSONDecodeError
 
 DEFAULTS = {
 
-    "highscore_filename": "highscores.json",
+    "highscore_filename": "highscore.json",
     "lives": 3,
     "pacgum": 42,
     "points_per_pacgum": 10,

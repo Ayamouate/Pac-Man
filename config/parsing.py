@@ -1,4 +1,4 @@
-from config.class_error import Game_error
+
 import json
 from json import JSONDecodeError
 
@@ -43,9 +43,9 @@ def validate_levels(levels: list) -> list:
         width = level.get("width", 15)
         height = level.get("height", 15)
 
-        if type(width) is not int:
+        if type(width) is not int or width < 3:
             width = 15
-        if type(height) is not int:
+        if type(height) is not int or height < 3:
             height = 15
         valide_levels.append({"width": width, "height": height})
     while len(valide_levels) < 10:
@@ -66,7 +66,9 @@ class config_file:
                 for i in f:
                     lines.append(i.strip())
                 if not lines:
-                    raise Game_error("empty config file")
+                    print("empty config file")
+                    print("Using default configuration.")
+                    return DEFAULTS
                 for line in lines:
                     if (
                         line.startswith("#")
@@ -77,7 +79,9 @@ class config_file:
                     valid_content.append(line)
                 data = json.loads("\n".join(valid_content))
                 if type(data) is not dict:
-                    raise Game_error("Config must contain a JSON object")
+                    print("Config must contain a JSON object")
+                    print("Using default configuration.")
+                    return DEFAULTS
                 data = {i.lower(): j for i, j in data.items()}
                 for key, default in DEFAULTS.items():
                     if key not in data:
@@ -86,7 +90,7 @@ class config_file:
                     elif type(data[key]) is not TYPES[key]:
                         print(f"Warning: invalid {key}, using default.")
                         data[key] = default
-                    elif key == "levels":
+                    if key == "levels":
                         data[key] = validate_levels(data[key])
                 valide_data = {}
                 for key in data:
@@ -94,9 +98,14 @@ class config_file:
                         continue
                     valide_data[key] = data[key]
         except FileNotFoundError:
-            raise Game_error("config file missing")
+            print(f"config file missing.")
+            print("Using default configuration.")
+            return DEFAULTS
         except PermissionError:
-            raise Exception("You don't have permission to access the file")
+            print("You don't have permission to access the file")
+            print("Using default configuration.")
+            return DEFAULTS
         except JSONDecodeError:
-            raise ValueError("Invalid JSON configuration")
+            print("Using default configuration.")
+            return DEFAULTS
         return valide_data

@@ -4,7 +4,6 @@ from maze.maze import generate_mazes
 from maze.visualizer import MazeViewer
 
 
-
 def main() -> None:
 
     if len(sys.argv) != 2:

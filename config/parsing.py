@@ -98,7 +98,7 @@ class config_file:
                         continue
                     valide_data[key] = data[key]
         except FileNotFoundError:
-            print(f"config file missing.")
+            print("config file missing.")
             print("Using default configuration.")
             return DEFAULTS
         except PermissionError:

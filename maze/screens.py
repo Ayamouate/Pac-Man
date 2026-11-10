@@ -355,7 +355,7 @@ class ScreensMixin:
             )
 
         hint = hint_font.render(
-            "Press Enter or Esc to return", True, (231, 190, 193)
+            "Press Enter or Esc to return to the menu", True, (231, 190, 193)
         )
         screen.blit(
             hint,

@@ -152,5 +152,3 @@ class Ghost:
 
         best_move = max(distances, key=lambda position: distances[position])
         return best_move
-
-

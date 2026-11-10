@@ -9,6 +9,7 @@ class CheatMode:
 
     def cheate_mode_active(self) -> None:
         self.active = not self.active
+
     def toggle_infinite_lives(self) -> None:
         self.infinite_lives = not self.infinite_lives
 

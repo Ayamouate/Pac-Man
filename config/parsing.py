@@ -1,4 +1,3 @@
-
 import json
 from json import JSONDecodeError
 
@@ -92,6 +91,33 @@ class config_file:
                         data[key] = default
                     if key == "levels":
                         data[key] = validate_levels(data[key])
+                if data["lives"] < 1:
+                        print("Invalid lives, using default.")
+                        data["lives"] = DEFAULTS["lives"]
+                if data["pacgum"] < 1:
+                    print("Invalid pacgum, using default.")
+                    data["pacgum"] = DEFAULTS["pacgum"]
+
+                if data["points_per_pacgum"] < 0:
+                    print("Invalid points_per_pacgum, using default.")
+                    data["points_per_pacgum"] = DEFAULTS["points_per_pacgum"]
+
+                if data["points_per_super_pacgum"] < 0:
+                    print("Invalid points_per_super_pacgum, using default.")
+                    data["points_per_super_pacgum"] = DEFAULTS["points_per_super_pacgum"]
+
+                if data["points_per_ghost"] < 0:
+                    print("Invalid points_per_ghost, using default.")
+                    data["points_per_ghost"] = DEFAULTS["points_per_ghost"]
+                
+                if data["seed"] <= 0:
+                    print("Invalid seed, using default.")
+                    data["seed"] = DEFAULTS["seed"]
+
+                if data["level_max_time"] <= 0:
+                    print("Invalid level_max_time, using default.")
+                    data["level_max_time"] = DEFAULTS["level_max_time"]
+
                 valide_data = {}
                 for key in data:
                     if key not in TYPES:
@@ -101,11 +127,11 @@ class config_file:
             print(f"config file missing.")
             print("Using default configuration.")
             return DEFAULTS
-        except PermissionError:
-            print("You don't have permission to access the file")
+        except JSONDecodeError:
             print("Using default configuration.")
             return DEFAULTS
-        except JSONDecodeError:
+        except OSError as error:
+            print(f"Could not read config file : {error}")
             print("Using default configuration.")
             return DEFAULTS
         return valide_data

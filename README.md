@@ -51,8 +51,10 @@ Navigate Pac-Man(Maomao) through the maze, collect all the Pacgums, and avoid be
 | Key | Action |
 |---|---|
 | Arrow Keys / WASD | Move Pac-Man |
-| P | Pause / Resume |
-| ESC / Q | Return to Main Menu / Exit Game |
+| P / ESC | Open the pause menu |
+| 1 (pause menu) | Resume the current game |
+| 2 (pause menu) | Return to the main menu |
+| Q | Return to the main menu / exit from the menu |
 
 ### Cheat Mode
 

@@ -118,7 +118,6 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.sound_manager = SoundManager()
         self._last_sound_state: str | None = None
 
-
     def run(self) -> None:
         """Open the window and process input until the user closes it."""
 
@@ -318,15 +317,19 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.super_pacgums,
                         self.sound_manager,
                     )
-                        
-                    if interaction.check_ghost_collision(self.ghosts, self.cheat_mode.invincibility):
+
+                    if interaction.check_ghost_collision(
+                        self.ghosts, self.cheat_mode.invincibility
+                    ):
                         if not self.player.is_alive():
                             self.game_over_reason = "lives"
 
                             self.game_over_time = now // 1000
                             self._start_end_state("over")
 
-                if self.state in (
+                if self.state == "playing" and self.game_state == "pause":
+                    self.sound_manager.pause_music()
+                elif self.state in (
                     "menu", "highscores", "instructions", "playing"
                 ):
                     self.sound_manager.play_music()
@@ -726,8 +729,8 @@ class MazeViewer(GameMixin, ScreensMixin):
             x_orange, y_orange = x4 + 1, y4 - 1
         ghosts_positions.append((x_orange, y_orange))
         return ghosts_positions
-    
-    def _draw_cheat_mode_menu(self, screen, pygame) -> None:
+
+    def _draw_cheat_mode_menu(self, screen: Any, pygame: Any) -> None:
         small = pygame.font.SysFont("dejavusans", 14, bold=True)
         rows = [
             ("V", "Invincible", self.cheat_mode.invincibility),
@@ -743,7 +746,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             - (4 * panel_w + 3 * gap)
         ) // 2
 
-        y =  850
+        y = 850
         for i, (key, name, flag) in enumerate(rows):
             x = start_x + i * (panel_w + gap)
             panel = pygame.transform.scale(self.hud, (panel_w, panel_h))

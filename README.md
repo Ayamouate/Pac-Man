@@ -75,6 +75,38 @@ Press **C** to open the Cheat Mode menu and access the following features:
 
 The game ends when all lives are lost or the player successfully completes the configured level progression.
 
+### Ghost Algorithm
+
+The ghost system is implemented in `ghost.py`. Each ghost uses AI logic to move through the maze and interact with Pac-Man.
+
+#### `Ghost Personalities`
+
+Each ghost has a distinct personality and targeting strategy in **CHASE** mode:
+
+| Color | Ghost | Target in CHASE mode |
+|---|---|---|
+| Red | Blinky | Pac-Man's current cell. Blinky is the direct chaser. |
+| Pink | Pinky | Four cells ahead of Pac-Man's current direction. |
+| Cyan | Inky | A target calculated using a pivot two cells ahead of Pac-Man and Blinky's current position. |
+| Orange | Clyde | Pac-Man when far away; its starting corner when close. |
+
+#### `Ghost Movement`
+
+Ghosts use **Breadth-First Search (BFS)** to find paths through the maze. Their movement behavior depends on their current state and the game situation.
+
+#### `Ghost States`
+
+The ghost system handles different states:
+
+- **Chase:** Ghosts follow paths toward their individual targets.
+- **Flee:** When Pac-Man collects a Super Pacgum, ghosts become vulnerable and try to escape.
+- **Eaten:** When Pac-Man catches a vulnerable ghost, it enters an eaten state.
+- **Respawn:** After being eaten, the ghost returns to the game after a respawn delay.
+
+### Game Coordination
+
+`GameManager` coordinates ghost updates and manages their interactions with the player. It handles state transitions, collisions, and the timing of ghost respawning.
+
 ## 4.Configuration :
 
 The game uses a `config.json` file to customize its settings, including the number of lives, scoring system, Pacgums, level time limits, and maze generation parameters.

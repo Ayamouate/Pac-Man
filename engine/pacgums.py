@@ -2,6 +2,7 @@ from typing import Any
 
 
 class Pacgums():
+    """Handle pacgum positions and placement in the maze."""
 
     def __init__(self, maze: Any, player: Any) -> None:
         self.maze = maze
@@ -18,6 +19,8 @@ class Pacgums():
         self.set_pacgums()
 
     def set_pacgums(self) -> set[tuple[int, int]]:
+        """Place regular pacgums in valid maze cells."""
+
         for y in range(self.height):
             for x in range(self.width):
                 pos = (x, y)

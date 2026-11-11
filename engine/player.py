@@ -5,6 +5,8 @@ from maze.maze_loader import Loader
 
 
 class Player:
+    """Manage the player's state and actions during the game."""
+
     RESPAWN_PROTECTION_SECONDS = 3.0
     directions = {"right": (1, 0), "up": (0, -1),
                   "down": (0, 1), "left": (-1, 0)}
@@ -28,6 +30,8 @@ class Player:
         self.ghost_points = ghost_points
 
     def can_move(self, direction: str, maze: Any) -> bool:
+        """Check whether the player can move in the given direction."""
+
         if direction not in self.directions:
             return False
         move = Loader(maze).open_wall(
@@ -42,19 +46,29 @@ class Player:
         return False
 
     def move(self, maze: Any) -> None:
+        """Move the player in the current direction if possible."""
+
         if self.direction is not None:
             self.can_move(self.direction, maze)
 
     def add_score(self) -> None:
+        """Add points for collecting a regular pacgum."""
+
         self.score += self.pacgums_points
 
     def add_super_score(self) -> None:
+        """Add points for collecting a regular super_pacgum."""
+
         self.score += self.super_pacgums_points
 
     def add_ghost_score(self) -> None:
+        """Add points for eating a ghost."""
+
         self.score += self.ghost_points
 
     def is_alive(self) -> bool:
+        """Check whether the player has any remaining lives."""
+
         if self.lives == 0:
             return False
         else:
@@ -68,6 +82,8 @@ class Player:
         return current_time < self.respawn_protection_until
 
     def lose_life(self, current_time: float | None = None) -> int:
+        """Remove one life and reset the player after a collision."""
+
         if self.lives > 0:
             self.lives -= 1
             self.current_pos = self.start_position

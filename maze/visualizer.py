@@ -28,30 +28,19 @@ class MazeViewer(GameMixin, ScreensMixin):
     PADDING = 24
     PLAYER_SPEED = 6.0
     GHOST_SPEED = 2.2
-    BACKGROUND = (8, 10, 24)
-    WALL = (107, 66, 38)
     FORTY_TWO_COLOR = (188, 173, 88)
     TEXT = (55, 32, 20)
     MENU_TEXT = (255, 250, 205)
-    MENU_SELECTED = (255, 215, 0)
-    MUTED_TEXT = (155, 165, 195)
     MAIN_MENU = ["Start Game", "View Highscores", "Instructions", "Exit"]
 
     def __init__(self, data: Any, mazes: Sequence[Any]) -> None:
-        levels = data["levels"]
-        if len(levels) != len(mazes):
-            raise ValueError(
-                "Each configured level must have a generated maze"
-            )
-        if not levels:
-            raise ValueError("At least one maze level is required")
         self.starting_lives: int = data["lives"]
-        self.level_max_time: int = max(0, data["level_max_time"])
+        self.level_max_time: int = data["level_max_time"]
         self.blue_ghost: Any = None
         self.pink_ghost: Any = None
         self.red_ghost: Any = None
         self.orange_ghost: Any = None
-        self._levels = levels
+        self._levels = data["levels"]
         self._mazes = mazes
         self.highscore_manager = HighscoreManager(data["highscore_filename"])
         self.name_entry = ""
@@ -398,7 +387,7 @@ class MazeViewer(GameMixin, ScreensMixin):
     def _draw(
         self, pygame: Any, screen: Any
     ) -> None:
-        self._draw_background(pygame, screen)
+        self._draw_background(screen)
         maze = self._mazes[self._level_index]
         level = self._levels[self._level_index]
         width = level["width"]

@@ -76,7 +76,7 @@ class config_file:
                     ):
                         continue
                     valid_content.append(line)
-                data = json.loads("\n".join(valid_content))
+                data = json.loads("\n".join(valid_content)) 
                 if type(data) is not dict:
                     print("Config must contain a JSON object")
                     print("Using default configuration.")
@@ -91,6 +91,7 @@ class config_file:
                         data[key] = default
                     if key == "levels":
                         data[key] = validate_levels(data[key])
+
                 if data["lives"] < 1:
                         print("Invalid lives, using default.")
                         data["lives"] = DEFAULTS["lives"]

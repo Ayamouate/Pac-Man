@@ -9,9 +9,7 @@ class ScreensMixin:
 
     WINDOW_SIZE: tuple[int, int]
     MAIN_MENU: list[str]
-    MENU_SELECTED: tuple[int, int, int]
     MENU_TEXT: tuple[int, int, int]
-    MUTED_TEXT: tuple[int, int, int]
     background: Any
     video_background: Any
     instruction_image: Any
@@ -31,7 +29,7 @@ class ScreensMixin:
     def _inside(self, maze: Any, x: int, y: int) -> bool:
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
 
-    def _draw_background(self, pygame: Any, screen: Any) -> None:
+    def _draw_background(self, screen: Any) -> None:
         if (
             self.video_background is None
             or not self.video_background.draw(screen)
@@ -39,7 +37,7 @@ class ScreensMixin:
             screen.blit(self.background, (0, 0))
 
     def _instructions(self, pygame: Any, screen: Any) -> None:
-        self._draw_background(pygame, screen)
+        self._draw_background(screen)
         center_x = self.WINDOW_SIZE[0] // 2
         center_y = self.WINDOW_SIZE[1] // 2
 
@@ -232,7 +230,7 @@ class ScreensMixin:
 
     def _draw_main_menu(self, pygame: Any, screen: Any) -> None:
         cord = [(547, 189), (558, 360), (543, 528), (555, 700)]
-        self._draw_background(pygame, screen)
+        self._draw_background(screen)
         center_x = self.WINDOW_SIZE[0] // 2
         center_y = self.WINDOW_SIZE[1] // 2
 
@@ -271,7 +269,7 @@ class ScreensMixin:
     def _draw_highscores(self, pygame: Any, screen: Any) -> None:
         """Draw the shared leaderboard loaded from the high-score file."""
 
-        self._draw_background(pygame, screen)
+        self._draw_background(screen)
         title = pygame.transform.smoothscale(
             self.highscore_title, (820, 159)
         )
@@ -365,7 +363,7 @@ class ScreensMixin:
     def _draw_name_entry(self, pygame: Any, screen: Any) -> None:
         """Draw the Sakura-styled name entry screen for a new high score."""
 
-        self._draw_background(pygame, screen)
+        self._draw_background(screen)
 
         title_font = pygame.font.SysFont("dejavusans", 56, bold=True)
         heading_font = pygame.font.SysFont("dejavusans", 27, bold=True)

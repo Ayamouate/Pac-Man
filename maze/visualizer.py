@@ -169,12 +169,9 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.game_over_image = pygame.image.load(
                 "assets/game_over.png"
             ).convert_alpha()
-        try:
-            self.player_image = pygame.image.load(
+        self.player_image = pygame.image.load(
                 "assets/player.png"
             ).convert_alpha()
-        except (pygame.error, FileNotFoundError):
-            print("Player image not found. Using yellow circle.")
         self.pacgums_image = pygame.image.load(
                 "assets/pacgum.png"
             ).convert_alpha()

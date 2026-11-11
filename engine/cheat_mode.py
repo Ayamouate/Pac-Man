@@ -1,9 +1,10 @@
 class CheatMode:
+    """Manage cheat mode and its gameplay effects."""
+
     def __init__(self) -> None:
         self.invincibility = False
         self.freeze = False
         self.infinite_lives = False
-        self.speed_boost = False
         self.level_skip = False
         self.active = False
 

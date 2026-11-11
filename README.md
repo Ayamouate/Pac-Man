@@ -237,10 +237,185 @@ Other classes provide additional game functionality:
 - **SoundManager:** Manages the game's music and sound effects.
 - **AnimatedBackground:** Provides the animated background used in the game.
 
-## 9. Project Management :
+## 9. Project Structure
 
+The repository is organized by responsibility: the root contains the entry
+point and runtime data, `engine/` contains gameplay entities, and `maze/`
+contains maze generation, the game controller, screens, and persistence.
 
-## 10. Resources :
+```text
+.
+├── pac-man.py                         # Application entry point
+├── config.json                        # Runtime configuration
+├── highscore.json                     # Persistent high scores
+├── makefile                           # Install, run, lint, and clean commands
+├── README.md                          # Project documentation
+├── assets/                            # Images used by the Pygame interface
+│   ├── Bg.jpeg
+│   ├── player.png, red.png, pink.png, bleu.png, orange.png
+│   ├── pacgum.png, super_pacgum.png, edible.png, life_icon.png
+│   ├── wall_h.png, wall_v.png
+│   └── menu and screen images
+├── audio/
+│   ├── sound_manager.py               # Music and sound-effect management
+│   ├── music/music.wav                # Background music
+│   └── sounds/                        # Gameplay and menu sound effects
+├── config/
+│   └── parsing.py                      # Configuration loading and validation
+├── engine/
+│   ├── player.py                       # Player movement, lives, and score
+│   ├── ghost.py                        # Ghost AI and pathfinding
+│   ├── pacgums.py                      # Collectible placement
+│   ├── interactions.py                 # Collision and collection rules
+│   └── cheat_mode.py                   # Testing and cheat switches
+├── maze/
+│   ├── maze.py                         # MazeGenerator integration
+│   ├── maze_loader.py                  # Wall and movement validation
+│   ├── visualizer.py                   # Main Pygame controller and game loop
+│   ├── game_logic.py                   # Input, states, timer, and level changes
+│   ├── screens.py                      # Menu and screen rendering
+│   ├── highscore.py                    # Validated top-10 score storage
+│   └── animated_background.py          # Animated background effects
+├── mazegenerator-00001-py3-none-any/  # Bundled MazeGenerator package
+└── project_management/                # Planning and delivery documents
+```
+
+## 10. File-by-File Explanation
+
+### Root files
+
+| File | Responsibility |
+|---|---|
+| `pac-man.py` | Validates the command-line argument, loads the configuration, generates all mazes, creates `MazeViewer`, and starts the application. |
+| `config.json` | Defines the default run settings: lives, scoring, seed, time limit, high-score file, and level dimensions. |
+| `highscore.json` | Stores the persistent high-score entries written by `HighscoreManager`. |
+| `makefile` | Provides `install`, `run`, `debug`, `clean`, and `lint` commands. |
+| `README.md` | Describes installation, gameplay, architecture, and project organization. |
+
+### `config/`
+
+| File | Responsibility |
+|---|---|
+| `config/__init__.py` | Marks `config` as a Python package. |
+| `config/parsing.py` | Reads JSON configuration files, removes supported comment lines, applies defaults, validates types, and sanitizes level dimensions. |
+
+### `engine/`
+
+| File | Responsibility |
+|---|---|
+| `engine/__init__.py` | Marks `engine` as a Python package. |
+| `engine/player.py` | Stores Pac-Man's position, direction, lives, score, movement rules, and temporary respawn protection. |
+| `engine/ghost.py` | Implements ghost states, target selection, BFS shortest-path movement, and frightened escape movement. |
+| `engine/pacgums.py` | Places regular Pacgums and four Super Pacgums on the current maze. |
+| `engine/interactions.py` | Processes Pacgum collection, score updates, Super Pacgum frightened mode, ghost eating, and player collisions. |
+| `engine/cheat_mode.py` | Stores the enabled/disabled states for freeze, infinite lives, invincibility, and level skipping. |
+
+### `maze/`
+
+| File | Responsibility |
+|---|---|
+| `maze/__init__.py` | Exposes the maze-generation helpers as package functions. |
+| `maze/maze.py` | Validates level sizes and creates one reproducible maze per configured level using `MazeGenerator`. |
+| `maze/maze_loader.py` | Interprets the generator's wall bit flags and prevents movement through walls or outside the maze. |
+| `maze/visualizer.py` | Defines `MazeViewer`, the central controller responsible for Pygame setup, the 60 FPS loop, entity updates, rendering, audio, and screen selection. |
+| `maze/game_logic.py` | Defines `GameMixin`, which handles keyboard input, menu actions, pause/resume, timers, game resets, level changes, name entry, and cheat controls. |
+| `maze/screens.py` | Defines `ScreensMixin`, which draws the menu, instructions, pause, gameplay HUD, highscores, name-entry, game-over, and victory screens. |
+| `maze/highscore.py` | Validates player names and scores, keeps the highest ten entries, and saves them safely as JSON. |
+| `maze/animated_background.py` | Adds the moving petal/wind effect to the background image. |
+
+### `audio/`, assets, and bundled dependencies
+
+| Path | Responsibility |
+|---|---|
+| `audio/__init__.py` | Marks `audio` as a Python package. |
+| `audio/sound_manager.py` | Loads music and sound effects, handles playback, pause/resume, muting, and missing-audio fallbacks. |
+| `audio/music/` and `audio/sounds/` | Contain the bundled WAV files used by menus and gameplay events. |
+| `assets/` | Contains the background, maze walls, player, ghosts, collectibles, HUD, and screen artwork loaded by `MazeViewer`. |
+| `mazegenerator-00001-py3-none-any/mazegenerator/` | Contains the assigned `MazeGenerator` implementation used to produce seeded mazes. |
+| `mazegenerator-00001-py3-none-any/*.dist-info/` | Contains package metadata for the bundled generator. |
+| `project_management/` | Contains team organization, timeline, progress, risk analysis, and acceptance-test documents. |
+
+## 11. Main Game State Flow
+
+The game uses two related state values:
+
+- `state` selects the active screen: `menu`, `playing`, `instructions`,
+  `highscores`, `over`, `victory`, or `name_entry`.
+- `game_state` controls gameplay while `state == "playing"`: it is either
+  `playing` or `pause`.
+
+### Application and screen flow
+
+```text
+Start
+  │
+  ├─ Read and validate config.json
+  ├─ Generate one maze for each configured level
+  └─ Create MazeViewer ──> state = menu
+                              │
+          ┌───────────────────┼────────────────────┐
+          │                   │                    │
+     Start Game         View Highscores        Instructions
+          │                   │                    │
+          v                   v                    v
+   state = playing       state = highscores    state = instructions
+   game_state = playing        │                    │
+          │                    └──── Return ───────┘
+          │                              │
+          └────────────── Return to menu ┘
+
+   Exit / Q / window close ──> application stops
+```
+
+### Gameplay loop and transitions
+
+```text
+state = playing, game_state = playing
+  │
+  ├─ Read keyboard and window events
+  ├─ Check the level timer
+  ├─ Move ghosts and calculate their targets
+  ├─ Move Pac-Man when the movement interval elapses
+  ├─ Collect Pacgums / Super Pacgums and update the score
+  ├─ Check ghost collisions and lives
+  ├─ Render the maze, entities, HUD, and effects
+  └─ Repeat at up to 60 frames per second
+```
+
+The important transitions are:
+
+| Current state | Event | Next state or action |
+|---|---|---|
+| `playing` | `P` or `Esc` | Set `game_state = pause`; stop gameplay updates until resumed. |
+| `pause` | `1` | Resume `game_state = playing`. |
+| `pause` | `2` | Reset to the first level and return to `menu`. |
+| `playing` | Timer expires | Set `state = over` with a time-out reason. |
+| `playing` | Lives reach zero | Set `state = over` with a life-loss reason. |
+| `playing` | All Pacgums are collected | Load the next maze, or set `state = victory` after the final level. |
+| `over` / `victory` | `Enter` when a score can be recorded | Set `state = name_entry`. |
+| `name_entry` | Confirm a name | Save the score and set `state = highscores`. |
+| `over` | `Enter` or `Esc` without name entry | Reset the game and return to `menu`. |
+| `victory` | `Enter` without name entry | Reset and start a new game. |
+| `victory` | `Esc` | Reset the game and return to `menu`. |
+| `highscores` / `instructions` | `Enter`, `Esc`, `Backspace`, or `Q` | Return to `menu`. |
+
+At the end of each level, the player and ghosts are repositioned, a fresh set
+of collectibles is created, and the level timer is restarted. During the main
+loop, `InteractionManager` connects entity updates to the resulting score,
+sound effects, frightened ghosts, lost lives, and end-screen transitions.
+
+## 12. Project Management :
+
+Project planning and delivery documentation is available in the
+[`project_management`](project_management/) folder:
+
+- [Team organisation](project_management/team_organisation.md)
+- [Timeline](project_management/timeline.md)
+- [Project progress](project_management/project_progress.md)
+- [Risk analysis](project_management/risk_analysis.md)
+- [Acceptance tests](project_management/acceptance_tests.md)
+
+## 13. Resources :
 
 * [Breadth-First Search (BFS) – GeeksforGeeks](https://www.geeksforgeeks.org/dsa/breadth-first-search-or-bfs-for-a-graph/)
 * [Pac-Man – Arcade Game](https://retro-arcade.fr/borne-darcade-pac-man/)

@@ -57,7 +57,8 @@ class MazeViewer(GameMixin, ScreensMixin):
             data["points_per_super_pacgum"],
             data["points_per_pacgum"], data["points_per_ghost"]
         )
-        self.pacgums = Pacgums(self.maze, self.player)
+        self.number_pac = data["pacgum"]
+        self.pacgums = Pacgums(self.maze, self.player, self.number_pac)
         self.super_pacgums = self.pacgums.super_pacgums
         self.pacgums_image: Any = None
         self.player_image: Any = None

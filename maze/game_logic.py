@@ -36,12 +36,8 @@ class GameMixin:
     name_entry_pending: bool
     cheat_mode: CheatMode
     sound_manager: Any
-
-    def _get_ghost_spawn_positions(
-        self, maze: Any
-    ) -> list[tuple[int, int]]:
-        raise NotImplementedError
-
+    number_pac: int
+    
     def _handle_key(
         self, pygame: Any, key: int, text: str = ""
     ) -> bool:
@@ -257,7 +253,7 @@ class GameMixin:
             ghost.spawn_pos = position
 
         self.player.direction = None
-        self.pacgums = Pacgums(self.maze, self.player)
+        self.pacgums = Pacgums(self.maze, self.player, self.number_pac)
         self.super_pacgums = self.pacgums.super_pacgums
         pause_start = (
             now if now is not None and self.game_state == "pause" else 0
@@ -265,6 +261,4 @@ class GameMixin:
         self.pause_start = pause_start
         self.pause_total_time = 0
         self.last_direction = None
-        # if now is not None:
-        #     self.start_time = now
         self.start_time = pygame.time.get_ticks()

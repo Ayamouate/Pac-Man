@@ -30,23 +30,11 @@ Level = Mapping[str, Any]
 class MazeGenerationError(RuntimeError):
     """Raised when the assigned maze generator cannot create a maze."""
 
-
-def _level_size(level: Level) -> tuple[int, int]:
-    """Return a safe generator size for one parsed level."""
-
-    width = level.get("width")
-    height = level.get("height")
-    if type(width) is not int or type(height) is not int:
-        raise ValueError("A maze level must contain integer width and height")
-    if width < 3 or height < 3:
-        raise ValueError("A maze level must be at least 3x3")
-    return width, height
-
-
 def generate_maze(level: Level, seed: int = 0) -> MazeGenerator:
     """Generate one maze from a parsed level definition."""
 
-    width, height = _level_size(level)
+    width = level.get("width")
+    height = level.get("height")
     try:
         return MazeGenerator(
             size=(width, height),

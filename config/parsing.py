@@ -42,9 +42,11 @@ def validate_levels(levels: list) -> list:
         width = level.get("width", 15)
         height = level.get("height", 15)
 
-        if type(width) is not int or width < 3:
+        if type(width) is not int or width < 10 or width >= 30:
+            print("Warning: Invalid maze width. Using default width (15).")
             width = 15
-        if type(height) is not int or height < 3:
+        if type(height) is not int or height < 10 or height >= 30:
+            print("Warning: Invalid maze height . Using default width (15).")
             height = 15
         valide_levels.append({"width": width, "height": height})
     while len(valide_levels) < 10:

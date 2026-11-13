@@ -18,8 +18,6 @@ except ImportError as error:
     )
     sys.path.insert(0, str(generator_package))
     # An installed, older package can remain cached after the import above.
-    # Remove it so the bundled package is actually loaded from the path added
-    # above.
     sys.modules.pop("mazegenerator", None)
     from mazegenerator import MazeGenerator
 

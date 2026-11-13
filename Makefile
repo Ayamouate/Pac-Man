@@ -1,21 +1,46 @@
-MYPY_CACHE_DIR ?= /tmp/pac-man-mypy-cache
 
-.PHONY: install run debug clean lint
+MYPY_CACHE_DIR ?= /tmp/pac-man-mypy-cache
+PYTHON = .venv/bin/python
+PIP = .venv/bin/pip
+VENV = .venv
+MAIN = pac-man.py
+CONFIG = config.json
+
+.PHONY: help install run debug clean lint package zip
 
 install:
-	pip install pygame  flake8 mypy
+	python3 -m venv $(VENV)
+	$(PIP) install --upgrade pip
+	$(PIP) install -r requirements.txt
 
 run:
-	python3 pac-man.py config.json
+	$(PYTHON) $(MAIN) $(CONFIG)
 
 debug:
-	python3 -m pdb pac-man.py
-
-clean:
-	rm -rf __pycache__ .mypy_cache .pytest_cache dist mazegenerator-2.0.2.dist-info
-	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	$(PYTHON) -m pdb $(MAIN) $(CONFIG)
 
 lint:
-	flake8 .
-	python3 -m mypy --cache-dir $(MYPY_CACHE_DIR) --explicit-package-bases . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	lint:
+	$(PYTHON) -m flake8 .
+	$(PYTHON) -m mypy --cache-dir $(MYPY_CACHE_DIR) --explicit-package-bases . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+
+clean:
+	rm -rf build dist PacMan-linux PacMan-linux.zip
+	rm -rf __pycache__ .mypy_cache .pytest_cache
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+
+package:
+	$(PYTHON) -m PyInstaller --noconfirm --clean \
+		--name PacMan \
+		--onedir \
+		--windowed \
+		--add-data "assets:assets" \
+		--add-data "audio:audio" \
+		--add-data "config:config" \
+		--add-data "config.json:." \
+		$(MAIN)
+
+zip: package
+	mv dist/PacMan PacMan-linux
+	zip -r PacMan-linux.zip PacMan-linux

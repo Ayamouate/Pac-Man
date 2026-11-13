@@ -1,15 +1,19 @@
 import sys
-from config.parsing import config_file
-from maze.maze import generate_mazes
-from maze.visualizer import MazeViewer
 
 
 def main() -> None:
 
     if len(sys.argv) != 2:
-        raise ValueError("Expected exactly one configuration file.")
+        raise ValueError(
+            "Usage: python3 pac-man.py <configuration.json> "
+            "(exactly one file is required)."
+        )
     if not sys.argv[1].endswith(".json"):
         raise ValueError("configuration file must be in json format")
+    from config.parsing import config_file
+    from maze.maze import generate_mazes
+    from maze.visualizer import MazeViewer
+
     data = config_file(sys.argv[1]).read_file()
     mazes = generate_mazes(data["levels"], seed=data["seed"])
     print(
@@ -24,3 +28,6 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print("\nExiting Pac-Man.")
+    except Exception as error:
+        print(f"Error: {error}", file=sys.stderr)
+        sys.exit(1)

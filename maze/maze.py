@@ -23,6 +23,8 @@ except ImportError as error:
 
 
 Level = Mapping[str, Any]
+MIN_MAZE_DIMENSION = 10
+MAX_MAZE_DIMENSION = 29
 
 
 class MazeGenerationError(RuntimeError):
@@ -37,6 +39,15 @@ def generate_maze(level: Level, seed: int = 0) -> MazeGenerator:
     if not isinstance(width, int) or not isinstance(height, int):
         raise MazeGenerationError(
             "Maze dimensions must be integers"
+        )
+    if (
+        isinstance(width, bool)
+        or isinstance(height, bool)
+        or not MIN_MAZE_DIMENSION <= width <= MAX_MAZE_DIMENSION
+        or not MIN_MAZE_DIMENSION <= height <= MAX_MAZE_DIMENSION
+    ):
+        raise MazeGenerationError(
+            "Maze dimensions must be between 10 and 29"
         )
     try:
         return MazeGenerator(

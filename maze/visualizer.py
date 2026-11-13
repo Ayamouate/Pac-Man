@@ -207,7 +207,14 @@ class MazeViewer(GameMixin, ScreensMixin):
                     and self._timer_expired(now)
                 ):
                     self.game_over_reason = "time"
-                    self.game_over_time = now // 1000
+                    self.game_over_time = max(
+                        0,
+                        (
+                            now
+                            - self.start_time
+                            - self.pause_total_time
+                        ) // 1000,
+                    )
                     self._start_end_state("over")
 
                 for event in pygame.event.get():
@@ -311,7 +318,14 @@ class MazeViewer(GameMixin, ScreensMixin):
                         if not self.player.is_alive():
                             self.game_over_reason = "lives"
 
-                            self.game_over_time = now // 1000
+                            self.game_over_time = max(
+                                0,
+                                (
+                                    now
+                                    - self.start_time
+                                    - self.pause_total_time
+                                ) // 1000,
+                            )
                             self._start_end_state("over")
 
                 if self.state == "playing" and self.game_state == "pause":

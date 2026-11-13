@@ -39,5 +39,5 @@ class Pacgums():
             number = self.number
         else:
             number = self.pacgum
-        self.pacgums =  set(random.sample(available_cells, number))
+        self.pacgums = set(random.sample(available_cells, number))
         return self.pacgums

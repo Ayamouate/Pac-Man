@@ -37,7 +37,14 @@ class GameMixin:
     cheat_mode: CheatMode
     sound_manager: Any
     number_pac: int
-    
+
+    def _get_ghost_spawn_positions(
+        self, maze: Any
+    ) -> list[tuple[int, int]]:
+        """Return the spawn positions supplied by the concrete viewer."""
+
+        raise NotImplementedError
+
     def _handle_key(
         self, pygame: Any, key: int, text: str = ""
     ) -> bool:

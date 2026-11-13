@@ -30,11 +30,16 @@ Level = Mapping[str, Any]
 class MazeGenerationError(RuntimeError):
     """Raised when the assigned maze generator cannot create a maze."""
 
+
 def generate_maze(level: Level, seed: int = 0) -> MazeGenerator:
     """Generate one maze from a parsed level definition."""
 
     width = level.get("width")
     height = level.get("height")
+    if not isinstance(width, int) or not isinstance(height, int):
+        raise MazeGenerationError(
+            "Maze dimensions must be integers"
+        )
     try:
         return MazeGenerator(
             size=(width, height),

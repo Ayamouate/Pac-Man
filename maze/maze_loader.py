@@ -13,7 +13,7 @@ class Loader:
     def __init__(self, maze: Any) -> None:
         self.maze = maze.maze
         self.height = len(self.maze)
-        self.width = len(self.maze[0]) if self.height else 0
+        self.width = len(self.maze[0])
 
     def open_wall(self, x: int, y: int, direction: str) -> bool:
         if not (0 <= x < self.width and 0 <= y < self.height):
@@ -36,3 +36,18 @@ class Loader:
 
         else:
             return True
+        
+    def get_maze_center(self) -> tuple:
+        cx = len(self.maze[0]) // 2
+        cy = len(self.maze) // 2
+
+        if self.maze[cy][cx] != 15:
+            print(self.maze[cy][cx])
+            return (cx,cy)
+        
+        for distance in range(max(self.width, self.height)):
+            for y in range(self.height):
+                for x in range(self.width):
+                    if abs(x - cx) + abs(y - cy) == distance:
+                        if self.maze[y][x] != 15:
+                            return (x, y)

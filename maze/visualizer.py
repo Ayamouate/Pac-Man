@@ -12,6 +12,9 @@ from maze.screens import ScreensMixin
 from engine.ghost import Ghost
 from engine.cheat_mode import CheatMode
 from audio.sound_manager import SoundManager
+from maze.maze_loader import Loader
+from pathlib import Path
+import sys
 from maze.animated_background import AnimatedBackground
 
 
@@ -48,11 +51,9 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.name_entry_pending = False
         self._level_index = 0
         self.maze = self._mazes[self._level_index]
+        self.loader = Loader(self.maze)
         self.player = Player(
-            (
-                len(self.maze.maze[0]) // 2,
-                len(self.maze.maze) // 2,
-            ),
+            self.loader.get_maze_center(),
             self.starting_lives,
             data["points_per_super_pacgum"],
             data["points_per_pacgum"], data["points_per_ghost"]
@@ -124,70 +125,32 @@ class MazeViewer(GameMixin, ScreensMixin):
         pygame.init()
         self.sound_manager.load()
         screen = pygame.display.set_mode(self.WINDOW_SIZE)
-
-        self.background = pygame.image.load(
-            "assets/Bg.jpeg").convert()
+        self.background = self.load_image(pygame,"Bg.jpeg")
 
         self.background = pygame.transform.scale(
             self.background, self.WINDOW_SIZE
         )
-        self.wall_h = pygame.image.load(
-                "assets/wall_h.png"
-            ).convert_alpha()
-        self.wall_v = pygame.image.load(
-                "assets/wall_v.png"
-            ).convert_alpha()
-        self.red_ghost = pygame.image.load(
-                "assets/red.png"
-            ).convert_alpha()
-        self.blue_ghost = pygame.image.load(
-                "assets/bleu.png"
-            ).convert_alpha()
-        self.pink_ghost = pygame.image.load(
-                "assets/pink.png"
-            ).convert_alpha()
-        self.orange_ghost = pygame.image.load(
-                "assets/orange.png"
-            ).convert_alpha()
-        self.hud = pygame.image.load(
-                "assets/hud.png"
-            ).convert_alpha()
-        self.menu_image = pygame.image.load(
-                "assets/menu.png"
-            ).convert_alpha()
-        self.highscore_title = pygame.image.load(
-                "assets/highscore_title.png"
-            ).convert_alpha()
-        self.highscore_panel = pygame.image.load(
-                "assets/highscore_panel.png"
-            ).convert_alpha()
-        self.instruction_image = pygame.image.load(
-                "assets/instructions.png"
-            ).convert_alpha()
-        self.pause_menu = pygame.image.load(
-                "assets/pause_menu.png"
-            ).convert_alpha()
-        self.game_over_image = pygame.image.load(
-                "assets/game_over.png"
-            ).convert_alpha()
-        self.player_image = pygame.image.load(
-                "assets/player.png"
-            ).convert_alpha()
-        self.pacgums_image = pygame.image.load(
-                "assets/pacgum.png"
-            ).convert_alpha()
+        self.wall_h = self.load_image(pygame,"wall_h.png") 
+        self.wall_v = self.load_image(pygame,"wall_v.png") 
+        self.red_ghost = self.load_image(pygame,"red.png")
+        self.blue_ghost = self.load_image(pygame,"bleu.png")
+        self.pink_ghost = self.load_image(pygame,"pink.png")
+        self.orange_ghost = self.load_image(pygame,"orange.png")
+        self.hud = self.load_image(pygame,"hud.png")
+        self.menu_image = self.load_image(pygame,"menu.png")
+        self.highscore_title = self.load_image(pygame,"highscore_title.png")
+        self.highscore_panel = self.load_image(pygame,"highscore_panel.png")
+        self.instruction_image = self.load_image(pygame,"instructions.png")
+        self.pause_menu = self.load_image(pygame,"pause_menu.png")
+        self.game_over_image = self.load_image(pygame,"game_over.png")
+        self.player_image = self.load_image(pygame,"player.png")
+        self.pacgums_image = self.load_image(pygame,"pacgum.png")
         self.video_background = AnimatedBackground(
             pygame, self.background, self.pacgums_image
         )
-        self.super_pacgums_image = pygame.image.load(
-                "assets/super_pacgum.png"
-            ).convert_alpha()
-        self.life_icon = pygame.image.load(
-                "assets/life_icon.png"
-            ).convert_alpha()
-        self.frightened_ghost = pygame.image.load(
-                "assets/edible.png"
-            ).convert_alpha()
+        self.super_pacgums_image = self.load_image(pygame,"super_pacgum.png") 
+        self.life_icon = self.load_image(pygame,"life_icon.png") 
+        self.frightened_ghost = self.load_image(pygame,"edible.png") 
         pygame.display.set_caption("Pac-Man Maze Viewer")
         clock = pygame.time.Clock()
         last_move = pygame.time.get_ticks()
@@ -768,3 +731,15 @@ class MazeViewer(GameMixin, ScreensMixin):
                     midright=(x + panel_w - 14, y + panel_h // 2)
                 ),
             )
+    
+
+    def load_image(self, pygame,filename: str) -> Any:
+        """Load an image from the assets directory."""
+
+        if getattr(sys, "frozen", False):
+            base_path = Path(sys._MEIPASS)
+        else:
+            base_path = Path(__file__).resolve().parent.parent
+
+        image_path = base_path / "assets" / filename
+        return pygame.image.load(str(image_path)).convert_alpha()

@@ -38,12 +38,6 @@ class GameMixin:
     sound_manager: Any
     number_pac: int
 
-    def _get_ghost_spawn_positions(
-        self, maze: Any
-    ) -> list[tuple[int, int]]:
-        """Return the spawn positions supplied by the concrete viewer."""
-
-        raise NotImplementedError
 
     def _handle_key(
         self, pygame: Any, key: int, text: str = ""
@@ -135,7 +129,7 @@ class GameMixin:
                 self.state = "menu"
             return True
 
-        if self.state == "playing" and key == pygame.K_ESCAPE:
+        if self.state == "playing" and key == pygame.K_ESCAPE and not self.cheat_mode.active:
             if self.game_state == "playing":
                 self.last_direction = self.player.direction
                 self.player.direction = None
@@ -246,7 +240,7 @@ class GameMixin:
             >= self.level_max_time * 1000
         )
 
-    def _change_level(self, index: int, now: int | None = None) -> None:
+    def _change_level(self, index: int) -> None:
         self._level_index = index
         self.maze = self._mazes[index]
         self.player.start_position = (
@@ -262,10 +256,7 @@ class GameMixin:
         self.player.direction = None
         self.pacgums = Pacgums(self.maze, self.player, self.number_pac)
         self.super_pacgums = self.pacgums.super_pacgums
-        pause_start = (
-            now if now is not None and self.game_state == "pause" else 0
-        )
-        self.pause_start = pause_start
+        self.pause_start = 0
         self.pause_total_time = 0
         self.last_direction = None
         self.start_time = pygame.time.get_ticks()

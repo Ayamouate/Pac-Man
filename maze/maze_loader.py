@@ -42,7 +42,6 @@ class Loader:
         cy = len(self.maze) // 2
 
         if self.maze[cy][cx] != 15:
-            print(self.maze[cy][cx])
             return (cx,cy)
         
         for distance in range(max(self.width, self.height)):

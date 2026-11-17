@@ -260,7 +260,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                             self._start_end_state("victory")
                         else:
                             self._change_level(
-                                self._level_index + 1, now=now
+                                self._level_index + 1
                             )
                             level_changed = True
                     last_move = now
@@ -649,50 +649,16 @@ class MazeViewer(GameMixin, ScreensMixin):
     def _get_ghost_spawn_positions(
         self, maze: Any
     ) -> list[tuple[int, int]]:
-        N, E, S, W = 1, 2, 4, 8
-        ghosts_positions: list[tuple[int, int]] = []
 
-        def cell(x: int, y: int) -> Any:
-            return maze.maze[y][x]
         width = len(maze.maze[0])
         height = len(maze.maze)
 
-        x1, y1 = (0, 0)
-        if self._inside(maze, x1 + 1, y1) and not cell(x1, y1) & E:
-            x_red, y_red = x1 + 1, y1
-        elif self._inside(maze, x1, y1 + 1) and not cell(x1, y1) & S:
-            x_red, y_red = x1, y1 + 1
-        else:
-            x_red, y_red = x1 + 1, y1 + 1
-        ghosts_positions.append((x_red, y_red))
-
-        x2, y2 = (width - 1, 0)
-        if self._inside(maze, x2 - 1, y2) and not cell(x2, y2) & W:
-            x_pink, y_pink = x2 - 1, y2
-        elif self._inside(maze, x2, y2 + 1) and not cell(x2, y2) & S:
-            x_pink, y_pink = x2, y2 + 1
-        else:
-            x_pink, y_pink = x2 - 1, y2 + 1
-        ghosts_positions.append((x_pink, y_pink))
-
-        x3, y3 = (width-1, height - 1)
-        if self._inside(maze, x3 - 1, y3) and not cell(x3, y3) & W:
-            x_blue, y_blue = x3 - 1, y3
-        elif self._inside(maze, x3, y3 - 1) and not cell(x3, y3) & N:
-            x_blue, y_blue = x3, y3 - 1
-        else:
-            x_blue, y_blue = x3 - 1, y3 - 1
-        ghosts_positions.append((x_blue, y_blue))
-
-        x4, y4 = 0, height-1
-        if self._inside(maze, x4 + 1, y4) and not cell(x4, y4) & E:
-            x_orange, y_orange = x4 + 1, y4
-        elif self._inside(maze, x4, y4 - 1) and not cell(x4, y4) & N:
-            x_orange, y_orange = x4, y4 - 1
-        else:
-            x_orange, y_orange = x4 + 1, y4 - 1
-        ghosts_positions.append((x_orange, y_orange))
-        return ghosts_positions
+        return [
+        (0, 0),                  
+        (width - 1, 0),          
+        (width - 1, height - 1), 
+        (0, height - 1),
+    ]
 
     def _draw_cheat_mode_menu(self, screen: Any, pygame: Any) -> None:
         small = pygame.font.SysFont("dejavusans", 14, bold=True)

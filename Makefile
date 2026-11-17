@@ -25,9 +25,8 @@ lint:
 
 clean:
 	rm -rf build dist PacMan-linux PacMan-linux.zip
-	rm -rf __pycache__ .mypy_cache .pytest_cache
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type d -name .mypy_cache -exec rm -rf {} +
 
 package:
 	$(PYTHON) -m PyInstaller --noconfirm --clean \

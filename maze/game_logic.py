@@ -184,6 +184,7 @@ class GameMixin:
             self.player.direction = None
             self.pause_start = pygame.time.get_ticks()
             self.game_state = "pause"
+            self.sound_manager.pause_music()
             return True
         elif key == pygame.K_1 and self.game_state == "pause":
             self.pause_total_time += pygame.time.get_ticks() - self.pause_start
@@ -191,8 +192,7 @@ class GameMixin:
             self.player.direction = self.last_direction
             return True
         elif key == pygame.K_2 and self.game_state == "pause":
-            self._change_level(0)
-            self.player.score = 0
+            self._reset_game()
             self.game_state = "playing"
             self.state = "menu"
             return True

@@ -20,7 +20,7 @@ debug:
 	$(PYTHON) -m pdb $(MAIN) $(CONFIG)
 
 lint:
-	$(PYTHON) -m flake8 .
+	$(PYTHON) -m flake8 --exclude=.venv .
 	$(PYTHON) -m mypy --cache-dir $(MYPY_CACHE_DIR) --explicit-package-bases . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 clean:

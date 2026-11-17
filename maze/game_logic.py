@@ -38,6 +38,12 @@ class GameMixin:
     sound_manager: Any
     number_pac: int
 
+    def _get_ghost_spawn_positions(
+        self, maze: Any
+    ) -> list[tuple[int, int]]:
+        """Return the ghost spawn positions for a maze."""
+
+        raise NotImplementedError
 
     def _handle_key(
         self, pygame: Any, key: int, text: str = ""
@@ -129,7 +135,11 @@ class GameMixin:
                 self.state = "menu"
             return True
 
-        if self.state == "playing" and key == pygame.K_ESCAPE and not self.cheat_mode.active:
+        if (
+            self.state == "playing"
+            and key == pygame.K_ESCAPE
+            and not self.cheat_mode.active
+        ):
             if self.game_state == "playing":
                 self.last_direction = self.player.direction
                 self.player.direction = None

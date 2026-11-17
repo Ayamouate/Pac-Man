@@ -36,17 +36,19 @@ class Loader:
 
         else:
             return True
-        
+
     def get_maze_center(self) -> tuple:
         cx = len(self.maze[0]) // 2
         cy = len(self.maze) // 2
 
         if self.maze[cy][cx] != 15:
-            return (cx,cy)
-        
+            return (cx, cy)
+
         for distance in range(max(self.width, self.height)):
             for y in range(self.height):
                 for x in range(self.width):
                     if abs(x - cx) + abs(y - cy) == distance:
                         if self.maze[y][x] != 15:
                             return (x, y)
+
+        raise ValueError("Maze does not contain an open cell")

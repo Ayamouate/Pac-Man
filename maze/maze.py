@@ -24,6 +24,7 @@ except ImportError as error:
 
 Level = Mapping[str, Any]
 
+
 class MazeGenerationError(RuntimeError):
     """Raised when the assigned maze generator cannot create a maze."""
 

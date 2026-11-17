@@ -11,7 +11,6 @@ class ScreensMixin:
     MAIN_MENU: list[str]
     MENU_TEXT: tuple[int, int, int]
     background: Any
-    video_background: Any
     instruction_image: Any
     pause_menu: Any
     game_over_image: Any
@@ -30,11 +29,7 @@ class ScreensMixin:
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
 
     def _draw_background(self, screen: Any) -> None:
-        if (
-            self.video_background is None
-            or not self.video_background.draw(screen)
-        ):
-            screen.blit(self.background, (0, 0))
+        screen.blit(self.background, (0, 0))
 
     def _instructions(self, pygame: Any, screen: Any) -> None:
         self._draw_background(screen)

@@ -8,7 +8,7 @@ from typing import Any
 from engine.ghost import Ghost
 import pygame
 from engine.cheat_mode import CheatMode
-
+from maze.maze_loader import Loader
 
 class GameMixin:
     """Key handling, level changes, timer and reset logic."""
@@ -37,13 +37,8 @@ class GameMixin:
     cheat_mode: CheatMode
     sound_manager: Any
     number_pac: int
+    loader : Loader
 
-    def _get_ghost_spawn_positions(
-        self, maze: Any
-    ) -> list[tuple[int, int]]:
-        """Return the ghost spawn positions for a maze."""
-
-        raise NotImplementedError
 
     def _handle_key(
         self, pygame: Any, key: int, text: str = ""
@@ -231,8 +226,11 @@ class GameMixin:
         if self.cheat_mode.level_skip:
             self.cheat_mode.level_skip = False
 
+
     def _reset_game(self) -> None:
         self._change_level(0)
+        self.cheat_mode.active = False
+        self._reset_cheat_modes()
         self.player.lives = self.starting_lives
         self.player.score = 0
         self.player.direction = None
@@ -250,11 +248,11 @@ class GameMixin:
             >= self.level_max_time * 1000
         )
 
+
     def _change_level(self, index: int) -> None:
         self._level_index = index
         self.maze = self._mazes[index]
-        self.player.start_position = (
-            len(self.maze.maze[0]) // 2, len(self.maze.maze) // 2)
+        self.player.start_position = self.loader.get_maze_center()
         self.player.current_pos = self.player.start_position
         self.start_ghosts_positions = self._get_ghost_spawn_positions(
             self.maze

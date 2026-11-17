@@ -235,7 +235,6 @@ Other classes provide additional game functionality:
 - **HighscoreManager:** Loads, validates, sorts, and saves the top ten scores. It uses `HighscoreEntry` to represent individual player records and stores the data in JSON format.
 - **HighscoreEntry:** Represents a single high-score entry containing a player's name and score.
 - **SoundManager:** Manages the game's music and sound effects.
-- **AnimatedBackground:** Provides the animated background used in the game.
 
 ## 9. Project Structure
 

@@ -15,7 +15,7 @@ from audio.sound_manager import SoundManager
 from maze.maze_loader import Loader
 from pathlib import Path
 import sys
-from maze.animated_background import AnimatedBackground
+
 
 
 Level = Mapping[str, Any]
@@ -152,9 +152,6 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.game_over_image = self.load_image(pygame, "game_over.png")
         self.player_image = self.load_image(pygame, "player.png")
         self.pacgums_image = self.load_image(pygame, "pacgum.png")
-        self.video_background = AnimatedBackground(
-            pygame, self.background, self.pacgums_image
-        )
         self.super_pacgums_image = self.load_image(
             pygame, "super_pacgum.png"
         )

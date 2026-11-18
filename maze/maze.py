@@ -17,7 +17,6 @@ except ImportError as error:
         / "mazegenerator-00001-py3-none-any"
     )
     sys.path.insert(0, str(generator_package))
-    # An installed, older package can remain cached after the import above.
     sys.modules.pop("mazegenerator", None)
     from mazegenerator import MazeGenerator
 

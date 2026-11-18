@@ -2,7 +2,6 @@ from collections import deque
 from typing import Any
 
 from engine.player import Player
-from maze.screens import ScreensMixin
 
 
 class Ghost:
@@ -20,13 +19,12 @@ class Ghost:
         self.spawn_pos = spawn_pos
         self.current_pos = spawn_pos
         self.state = "chase"
-        self.inside = ScreensMixin()
-        self.parent: dict[
-            tuple[int, int], tuple[int, int] | None
-        ] = {}
         self.frightened_time = 0
         self.is_eaten = False
         self.eaten_time = 0
+
+    def _inside(self, maze: Any, x: int, y: int) -> bool:
+        return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
 
     def get_neighbors(
         self, maze: Any, cell: tuple[int, int]
@@ -35,14 +33,14 @@ class Ghost:
         x, y = cell[0], cell[1]
         cell_value = int(maze.maze[y][x])
 
-        if not cell_value & 1 and self.inside._inside(maze, x, y - 1):
+        if not cell_value & 1 and self._inside(maze, x, y - 1):
             neighbors.append((x, y - 1))
-        if not cell_value & 2 and self.inside._inside(maze, x + 1, y):
+        if not cell_value & 2 and self._inside(maze, x + 1, y):
             neighbors.append((x + 1, y))
-        if not cell_value & 4 and self.inside._inside(maze, x, y + 1):
+        if not cell_value & 4 and self._inside(maze, x, y + 1):
             neighbors.append((x, y + 1))
 
-        if not cell_value & 8 and self.inside._inside(maze, x - 1, y):
+        if not cell_value & 8 and self._inside(maze, x - 1, y):
             neighbors.append((x - 1, y))
         return neighbors
 
@@ -51,7 +49,7 @@ class Ghost:
     ) -> list[tuple[int, int]]:
         queue = deque([self.current_pos])
         visited = {self.current_pos}
-        self.parent = {self.current_pos: None}
+        parent = {self.current_pos: None}
         while queue:
             current = queue.popleft()
             if current == target_pos:
@@ -62,9 +60,9 @@ class Ghost:
                     continue
                 visited.add(neighbor)
                 queue.append(neighbor)
-                self.parent[neighbor] = current
+                parent[neighbor] = current
 
-        if target_pos not in self.parent:
+        if target_pos not in parent:
             return []
 
         path = []
@@ -72,7 +70,7 @@ class Ghost:
 
         while current_cell is not None:
             path.append(current_cell)
-            current_cell = self.parent[current_cell]
+            current_cell = parent[current_cell]
 
         path.reverse()
         return path
@@ -80,14 +78,11 @@ class Ghost:
     def move(
         self, maze: Any, target_pos: tuple[int, int]
     ) -> tuple[int, int] | None:
-        if self.state == "chase":
             path = self.shortest_path(maze, target_pos)
             if len(path) >= 2:
                 next_direction = path[1]
                 return next_direction
-        else:
-            return target_pos
-        return None
+            return None
 
     def get_target_position(
         self, player: Player, red_ghost: "Ghost", maze: Any
@@ -127,7 +122,7 @@ class Ghost:
                 abs(self.current_pos[0] - player.current_pos[0])
                 + abs(self.current_pos[1] - player.current_pos[1])
             )
-            if distance > 10:
+            if distance > 8:
                 return player.current_pos
             else:
                 return self.spawn_pos
@@ -135,6 +130,7 @@ class Ghost:
         target_y = max(0, min(len(maze.maze) - 1, target_y))
         target = (target_x, target_y)
         return target
+
 
     def get_escape_move(
         self, maze: Any, target_pos: tuple[int, int]

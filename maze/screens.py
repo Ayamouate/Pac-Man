@@ -25,8 +25,6 @@ class ScreensMixin:
     name_entry: str
     name_entry_pending: bool
 
-    def _inside(self, maze: Any, x: int, y: int) -> bool:
-        return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
 
     def _draw_background(self, screen: Any) -> None:
         screen.blit(self.background, (0, 0))

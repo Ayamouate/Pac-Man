@@ -227,19 +227,19 @@ class MazeViewer(GameMixin, ScreensMixin):
                             ghost.state = "chase"
                         if ghost.state == "Frightened":
                             if self.cheat_mode.freeze:
-                                target = ghost.current_pos
+                                next_pos = ghost.current_pos
                             else:
-                                target = ghost.get_escape_move(
+                                next_pos = ghost.get_escape_move(
                                     maze, self.player.current_pos
                                 )
                         else:
                             if self.cheat_mode.freeze:
-                                target = ghost.current_pos
+                                next_pos = ghost.current_pos
                             else:
                                 target = ghost.get_target_position(
                                     self.player, self.ghosts[0], maze
                                 )
-                        next_pos = ghost.move(maze, target)
+                                next_pos = ghost.move(maze, target)
                         if next_pos is not None:
                             ghost.current_pos = next_pos
                     last_ghost_move = now
@@ -258,7 +258,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                         self.sound_manager,
                     )
                     interaction.check_pacgum(self.ghosts)
-                    if not self.pacgums.pacgums:
+                    if not self.pacgums.pacgums and not self.super_pacgums:
                         self.sound_manager.play("level_clear")
                         if self._level_index == len(self._mazes) - 1:
                             self._start_end_state("victory")

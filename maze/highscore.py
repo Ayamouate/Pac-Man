@@ -105,6 +105,7 @@ class HighscoreManager:
             self._entries = []
             return self.get_entries()
 
+        # Validating individual entries
         valid_entries: list[HighscoreEntry] = []
         for item in content:
             if not isinstance(item, dict):

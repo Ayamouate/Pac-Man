@@ -22,7 +22,7 @@ class Ghost:
         self.frightened_time = 0
         self.is_eaten = False
         self.eaten_time = 0
-        self.previous_pos = None
+        self.previous_pos: tuple[int, int] | None = None
 
     def _inside(self, maze: Any, x: int, y: int) -> bool:
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
@@ -50,7 +50,9 @@ class Ghost:
     ) -> list[tuple[int, int]]:
         queue = deque([self.current_pos])
         visited = {self.current_pos}
-        parent = {self.current_pos: None}
+        parent: dict[tuple[int, int], tuple[int, int] | None] = {
+            self.current_pos: None
+        }
         while queue:
             current = queue.popleft()
             if current == target_pos:
@@ -79,11 +81,11 @@ class Ghost:
     def move(
         self, maze: Any, target_pos: tuple[int, int]
     ) -> tuple[int, int] | None:
-            path = self.shortest_path(maze, target_pos)
-            if len(path) >= 2:
-                next_direction = path[1]
-                return next_direction
-            return None
+        path = self.shortest_path(maze, target_pos)
+        if len(path) >= 2:
+            next_direction = path[1]
+            return next_direction
+        return None
 
     def get_target_position(
         self, player: Player, red_ghost: "Ghost", maze: Any
@@ -132,17 +134,19 @@ class Ghost:
         target = (target_x, target_y)
         return target
 
-
     def get_escape_move(
-    self, maze: Any, target_pos: tuple[int, int]
-) -> tuple[int, int]:
-
+        self, maze: Any, target_pos: tuple[int, int]
+    ) -> tuple[int, int]:
         neighbors = self.get_neighbors(maze, self.current_pos)
 
         if not neighbors:
             return self.current_pos
 
-        if len(neighbors) > 1 and self.previous_pos in neighbors:
+        if (
+            len(neighbors) > 1
+            and self.previous_pos is not None
+            and self.previous_pos in neighbors
+        ):
             neighbors.remove(self.previous_pos)
 
         distances = {}

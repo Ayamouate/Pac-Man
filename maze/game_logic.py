@@ -265,6 +265,7 @@ class GameMixin:
         for ghost, position in zip(self.ghosts, self.start_ghosts_positions):
             ghost.current_pos = position
             ghost.spawn_pos = position
+            ghost.state = "chase"
 
         self.player.direction = None
         self.pacgums = Pacgums(self.maze, self.player, self.number_pac)
@@ -273,3 +274,4 @@ class GameMixin:
         self.pause_total_time = 0
         self.last_direction = None
         self.start_time = pygame.time.get_ticks()
+

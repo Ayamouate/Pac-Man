@@ -25,7 +25,6 @@ class ScreensMixin:
     name_entry: str
     name_entry_pending: bool
 
-
     def _draw_background(self, screen: Any) -> None:
         screen.blit(self.background, (0, 0))
 

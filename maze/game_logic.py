@@ -274,4 +274,3 @@ class GameMixin:
         self.pause_total_time = 0
         self.last_direction = None
         self.start_time = pygame.time.get_ticks()
-

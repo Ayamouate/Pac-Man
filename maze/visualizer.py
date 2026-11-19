@@ -225,6 +225,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                             >= self.FRIGHTENED_DURATION
                         ):
                             ghost.state = "chase"
+                        next_pos: tuple[int, int] | None = None
                         if ghost.state == "Frightened":
                             if self.cheat_mode.freeze:
                                 next_pos = ghost.current_pos

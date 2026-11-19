@@ -22,6 +22,7 @@ class Ghost:
         self.frightened_time = 0
         self.is_eaten = False
         self.eaten_time = 0
+        self.previous_pos = None
 
     def _inside(self, maze: Any, x: int, y: int) -> bool:
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
@@ -133,12 +134,19 @@ class Ghost:
 
 
     def get_escape_move(
-        self, maze: Any, target_pos: tuple[int, int]
-    ) -> tuple[int, int]:
+    self, maze: Any, target_pos: tuple[int, int]
+) -> tuple[int, int]:
+
         neighbors = self.get_neighbors(maze, self.current_pos)
+
         if not neighbors:
             return self.current_pos
+
+        if len(neighbors) > 1 and self.previous_pos in neighbors:
+            neighbors.remove(self.previous_pos)
+
         distances = {}
+
         for neighbor in neighbors:
             distance = (
                 abs(neighbor[0] - target_pos[0])
@@ -146,5 +154,4 @@ class Ghost:
             )
             distances[neighbor] = distance
 
-        best_move = max(distances, key=lambda position: distances[position])
-        return best_move
+        return max(distances, key=lambda pos: distances[pos])

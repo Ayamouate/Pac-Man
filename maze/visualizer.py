@@ -232,6 +232,8 @@ class MazeViewer(GameMixin, ScreensMixin):
                                 next_pos = ghost.get_escape_move(
                                     maze, self.player.current_pos
                                 )
+                                ghost.previous_pos = ghost.current_pos
+                                ghost.current_pos = next_pos
                         else:
                             if self.cheat_mode.freeze:
                                 next_pos = ghost.current_pos
@@ -272,13 +274,6 @@ class MazeViewer(GameMixin, ScreensMixin):
                     player_moved = True
 
                 if (player_moved or ghost_moved) and not level_changed:
-                    interaction = InteractionManager(
-                        self.player,
-                        self.pacgums.pacgums,
-                        self.super_pacgums,
-                        self.sound_manager,
-                    )
-
                     if interaction.check_ghost_collision(
                         self.ghosts, self.cheat_mode.invincibility
                     ):
@@ -494,12 +489,8 @@ class MazeViewer(GameMixin, ScreensMixin):
 
     def _draw_menu(self, pygame: Any, screen: Any) -> None:
 
-        images = [
-            self.hud,
-            self.hud,
-            self.hud,
-            self.hud,
-        ]
+        image = self.hud
+
         if self.state == "over":
             elapsed = self.game_over_time
         elif self.game_state == "pause":
@@ -529,20 +520,19 @@ class MazeViewer(GameMixin, ScreensMixin):
         start_x = (
             self.WINDOW_SIZE[0]
             - (4 * panel_width + 3 * gap)
-        ) // 2
+        )//2
 
         y = 10
 
         for i in range(4):
             panel = pygame.transform.scale(
-                images[i], (panel_width, panel_height)
+                image, (panel_width, panel_height)
             )
 
             x = start_x + i * (panel_width + gap)
 
             screen.blit(panel, (x, y))
 
-            # life icon logic
             if i == 0:
                 label = font.render("Lives:", True, self.TEXT)
                 icon_size = 30
@@ -592,26 +582,23 @@ class MazeViewer(GameMixin, ScreensMixin):
         origin_x: int,
         origin_y: int,
     ) -> None:
+        size = int(cell_size * 0.8)
         render_pos = self.player_render_pos
         if render_pos is None:
             render_pos = pygame.Vector2(self.player.current_pos)
 
-        center_x = origin_x + (render_pos.x + 0.5) * cell_size
-        center_y = origin_y + (render_pos.y + 0.5) * cell_size
+        x = origin_x + (render_pos.x + 0.5) * cell_size
+        y = origin_y + (render_pos.y + 0.5) * cell_size
 
         protected = self.player.is_respawn_protected()
 
         if self.player_image is not None:
-            size = int(cell_size * 0.8)
             image = pygame.transform.scale(
                 self.player_image, (size, size)
             )
             if protected:
                 image.set_alpha(150)
-            rect = image.get_rect(
-                center=(round(center_x), round(center_y))
-            )
-            screen.blit(image, rect)
+            screen.blit(image, (x - size // 2, y - size // 2))
 
     def _draw_ghosts(
         self,

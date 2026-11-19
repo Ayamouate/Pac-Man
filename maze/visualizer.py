@@ -646,7 +646,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             (0, 0),
             (width - 1, 0),
             (width - 1, height - 1),
-            (0, height - 1),
+            (0, height - 1)
         ]
 
     def _draw_cheat_mode_menu(self, screen: Any, pygame: Any) -> None:
@@ -673,7 +673,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             label = small.render(f"[{key}] {name}", True, self.TEXT)
             screen.blit(
                 label,
-                label.get_rect(midleft=(x + 14, y + panel_h // 2)),
+                label.get_rect(midleft=(x + 14, y + panel_h // 2))
             )
             status = small.render(
                 "ON" if flag else "OFF",

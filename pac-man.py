@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 
 def main() -> None:
@@ -14,13 +15,14 @@ def main() -> None:
     from maze.maze import generate_mazes
     from maze.visualizer import MazeViewer
 
-    data = config_file(sys.argv[1]).read_file()
+    config_path = Path(sys.argv[1]).resolve()
+    data = config_file(str(config_path)).read_file()
     mazes = generate_mazes(data["levels"], seed=data["seed"])
     print(
         f"\033[1;38;5;218m{len(mazes)} LEVELS LOADED. "
         "GET READY TO PLAY!\033[0m"
     )
-    MazeViewer(data, mazes).run()
+    MazeViewer(data, mazes, config_filename=config_path).run()
 
 
 if __name__ == "__main__":

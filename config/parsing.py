@@ -1,5 +1,6 @@
 import json
 from json import JSONDecodeError
+from typing import Any
 
 
 DEFAULTS = {
@@ -50,18 +51,20 @@ def validate_levels(levels: list) -> list:
             print("Warning: Invalid maze height . Using default width (15).")
             height = 15
         valide_levels.append({"width": width, "height": height})
-        if(len(valide_levels) == 10):
+        if len(valide_levels) == 10:
             return valide_levels
     while len(valide_levels) < 10:
         valide_levels.append(default_level.copy())
     return valide_levels
 
-def keep_first_key(data):
-    result = {}
+
+def keep_first_key(data: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
     for key, value in data:
         if key not in result:
-            result[key]= value
+            result[key] = value
     return result
+
 
 class config_file:
     """Read and validate the game's configuration file."""
@@ -83,11 +86,12 @@ class config_file:
                 for line in lines:
                     line = line.split("#")[0]
                     line = line.split("//")[0].strip()
-                    if not line :
+                    if not line:
                         continue
                     valid_content.append(line)
                 data = json.loads(
-                    "\n".join(valid_content),object_pairs_hook = keep_first_key
+                    "\n".join(valid_content),
+                    object_pairs_hook=keep_first_key,
                 )
                 if type(data) is not dict:
                     print("Config must contain a JSON object")

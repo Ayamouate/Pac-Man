@@ -35,7 +35,12 @@ class MazeViewer(GameMixin, ScreensMixin):
     MENU_TEXT = (255, 250, 205)
     MAIN_MENU = ["Start Game", "View Highscores", "Instructions", "Exit"]
 
-    def __init__(self, data: Any, mazes: Sequence[Any]) -> None:
+    def __init__(
+        self,
+        data: Any,
+        mazes: Sequence[Any],
+        config_filename: str | Path | None = None,
+    ) -> None:
         self.starting_lives: int = data["lives"]
         self.level_max_time: int = data["level_max_time"]
         self.blue_ghost: Any = None
@@ -44,7 +49,10 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.orange_ghost: Any = None
         self._levels = data["levels"]
         self._mazes = mazes
-        self.highscore_manager = HighscoreManager(data["highscore_filename"])
+        self.highscore_manager = HighscoreManager(
+            data["highscore_filename"],
+            config_filename,
+        )
         self.name_entry = ""
         self.name_entry_return_state = "over"
         self.name_entry_pending = False

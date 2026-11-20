@@ -15,6 +15,29 @@ MAX_PLAYER_NAME_LENGTH = 10
 _PLAYER_NAME_PATTERN = re.compile(r"^[A-Za-z0-9 ]+$")
 
 
+def resolve_highscore_path(
+    filename: str,
+    config_filename: str | Path | None = None,
+) -> Path:
+    """Resolve the score path without allowing it to replace the config."""
+
+    highscore_path = Path(filename)
+    if config_filename is None:
+        return highscore_path
+
+    config_path = Path(config_filename).resolve()
+    if not highscore_path.is_absolute():
+        highscore_path = config_path.parent / highscore_path
+    highscore_path = highscore_path.resolve()
+
+    if highscore_path == config_path:
+        highscore_path = (
+            config_path.parent / "highscores" / highscore_path.name
+        )
+
+    return highscore_path
+
+
 class HighscoreEntry:
     """Store one player's validated high-score entry."""
 
@@ -72,8 +95,12 @@ def sort_entries(
 class HighscoreManager:
     """Load, update, and save the top ten high scores."""
 
-    def __init__(self, filename: str) -> None:
-        self.path = Path(filename)
+    def __init__(
+        self,
+        filename: str,
+        config_filename: str | Path | None = None,
+    ) -> None:
+        self.path = resolve_highscore_path(filename, config_filename)
         self._entries: list[HighscoreEntry] = []
         self.load()
 

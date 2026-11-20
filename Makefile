@@ -8,7 +8,6 @@ CONFIG = config.json
 
 .PHONY: help install run debug clean lint package zip
 
-
 run:
 	$(PYTHON) $(MAIN) $(CONFIG)
 

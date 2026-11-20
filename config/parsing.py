@@ -104,7 +104,7 @@ class config_file:
                     if key == "levels":
                         data[key] = validate_levels(data[key])
 
-                if data["lives"] < 1:
+                if data["lives"] < 1 or data["lives"] > 3:
                     print("Invalid lives, using default.")
                     data["lives"] = DEFAULTS["lives"]
                 if data["pacgum"] < 1:

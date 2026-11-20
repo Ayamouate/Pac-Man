@@ -4,7 +4,7 @@ from typing import Any
 
 class Loader:
     """Load maze information and check cell connections."""
-
+    
     DIRECTIONS = {
         "up": (0, -1, 1, 4),
         "right": (1, 0, 2, 8),

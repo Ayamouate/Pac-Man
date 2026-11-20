@@ -38,7 +38,6 @@ class GameMixin:
     cheat_mode: CheatMode
     sound_manager: Any
     number_pac: int
-    loader: Loader
 
     def _get_ghost_spawn_positions(
         self, maze: Any
@@ -257,6 +256,7 @@ class GameMixin:
     def _change_level(self, index: int) -> None:
         self._level_index = index
         self.maze = self._mazes[index]
+        self.loader = Loader(self.maze)
         self.player.start_position = self.loader.get_maze_center()
         self.player.current_pos = self.player.start_position
         self.start_ghosts_positions = self._get_ghost_spawn_positions(

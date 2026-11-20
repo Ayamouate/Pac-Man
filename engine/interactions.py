@@ -50,13 +50,13 @@ class InteractionManager:
     ) -> bool:
         """Handle collisions between the player and ghosts."""
 
-        if invincibility:
-            return False
         current_time = time.monotonic()
         if self.player.is_respawn_protected(current_time):
             return False
 
         for ghost in ghosts:
+            if invincibility and ghost.state == "chase":
+                return False
             if ghost.is_eaten:
                 continue
             if self.player.current_pos != ghost.current_pos:

@@ -8,13 +8,14 @@ CONFIG = config.json
 
 .PHONY: help install run debug clean lint package zip
 
+
+run:
+	$(PYTHON) $(MAIN) $(CONFIG)
+
 install:
 	python3 -m venv $(VENV)
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
-
-run:
-	$(PYTHON) $(MAIN) $(CONFIG)
 
 debug:
 	$(PYTHON) -m pdb $(MAIN) $(CONFIG)

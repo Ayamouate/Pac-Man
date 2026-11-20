@@ -50,10 +50,18 @@ def validate_levels(levels: list) -> list:
             print("Warning: Invalid maze height . Using default width (15).")
             height = 15
         valide_levels.append({"width": width, "height": height})
+        if(len(valide_levels) == 10):
+            return valide_levels
     while len(valide_levels) < 10:
         valide_levels.append(default_level.copy())
     return valide_levels
 
+def keep_first_key(data):
+    result = {}
+    for key, value in data:
+        if key not in result:
+            result[key]= value
+    return result
 
 class config_file:
     """Read and validate the game's configuration file."""
@@ -73,15 +81,13 @@ class config_file:
                     print("Using default configuration.")
                     return DEFAULTS
                 for line in lines:
-                    if (
-                        line.startswith("#")
-                        or line.startswith("//")
-                        or not line
-                    ):
+                    line = line.split("#")[0]
+                    line = line.split("//")[0].strip()
+                    if not line :
                         continue
                     valid_content.append(line)
                 data = json.loads(
-                    "\n".join(valid_content)
+                    "\n".join(valid_content),object_pairs_hook = keep_first_key
                 )
                 if type(data) is not dict:
                     print("Config must contain a JSON object")
@@ -137,7 +143,7 @@ class config_file:
             print("Using default configuration.")
             return DEFAULTS
         except JSONDecodeError:
-            print("Using default configuration.")
+            print("Using default configuration.1")
             return DEFAULTS
         except OSError as error:
             print(f"Could not read config file : {error}")

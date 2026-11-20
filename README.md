@@ -70,7 +70,7 @@ Press **C** to open the Cheat Mode menu and access the following features:
 ### Gameplay
 
 - **Collect Pacgums:** Earn points by collecting regular Pacgums throughout the maze.
-- **Super Pacgums:** Activate frightened mode, allowing Pac-Man to eat ghosts for extra points.
+- **Super Pacgums:** Activate scared mode, allowing Pac-Man to eat ghosts for extra points.
 - **Avoid Ghosts:** Normal ghost collisions cost Pac-Man a life.
 - **Complete Levels:** Collect all Pacgums before the time limit expires to progress to the next level.
 - **Earn High Scores:** Your score is recorded in the Highscore table, where you can compete for a place in the Top 10.
@@ -306,7 +306,7 @@ contains maze generation, the game controller, screens, and persistence.
 | `engine/player.py` | Stores Pac-Man's position, direction, lives, score, movement rules, and temporary respawn protection. |
 | `engine/ghost.py` | Implements ghost states, target selection, BFS shortest-path movement, and frightened escape movement. |
 | `engine/pacgums.py` | Places regular Pacgums and four Super Pacgums on the current maze. |
-| `engine/interactions.py` | Processes Pacgum collection, score updates, Super Pacgum frightened mode, ghost eating, and player collisions. |
+| `engine/interactions.py` | Processes Pacgum collection, score updates, Super Pacgum scared mode, ghost eating, and player collisions. |
 | `engine/cheat_mode.py` | Stores the enabled/disabled states for freeze, infinite lives, invincibility, and level skipping. |
 
 ### `maze/`

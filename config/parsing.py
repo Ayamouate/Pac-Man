@@ -32,6 +32,7 @@ TYPES = {
 
 
 def validate_levels(levels: list) -> list:
+    """Validate level dimensions and fill missing levels with defaults."""
 
     default_level = {"width": 15, "height": 15}
     valide_levels = []
@@ -55,11 +56,12 @@ def validate_levels(levels: list) -> list:
 
 
 class config_file:
-
+    """Read and validate the game's configuration file."""
     def __init__(self, file_name: str) -> None:
         self.file = file_name
 
     def read_file(self) -> dict:
+        """Read the JSON file and return validated configuration settings."""
         try:
             with open(self.file) as f:
                 valid_content = []

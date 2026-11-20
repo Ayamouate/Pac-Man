@@ -5,6 +5,8 @@ from engine.player import Player
 
 
 class Ghost:
+    """Manage ghost movement, targeting, and behavior."""
+
     directions = {"right": (1, 0), "up": (0, -1),
                   "down": (0, 1), "left": (-1, 0)}
 
@@ -25,11 +27,13 @@ class Ghost:
         self.previous_pos: tuple[int, int] | None = None
 
     def _inside(self, maze: Any, x: int, y: int) -> bool:
+        """Check if a position is inside the maze."""
         return 0 <= y < len(maze.maze) and 0 <= x < len(maze.maze[0])
 
     def get_neighbors(
         self, maze: Any, cell: tuple[int, int]
     ) -> list[tuple[int, int]]:
+        """Get all accessible neighboring cells."""
         neighbors = []
         x, y = cell[0], cell[1]
         cell_value = int(maze.maze[y][x])
@@ -48,6 +52,7 @@ class Ghost:
     def shortest_path(
         self, maze: Any, target_pos: tuple[int, int]
     ) -> list[tuple[int, int]]:
+        """Find the shortest path to a target using BFS."""
         queue = deque([self.current_pos])
         visited = {self.current_pos}
         parent: dict[tuple[int, int], tuple[int, int] | None] = {
@@ -81,6 +86,7 @@ class Ghost:
     def move(
         self, maze: Any, target_pos: tuple[int, int]
     ) -> tuple[int, int] | None:
+        """Get the next position along the shortest path."""
         path = self.shortest_path(maze, target_pos)
         if len(path) >= 2:
             next_direction = path[1]
@@ -90,6 +96,7 @@ class Ghost:
     def get_target_position(
         self, player: Player, red_ghost: "Ghost", maze: Any
     ) -> tuple[int, int]:
+        """Calculate the target position based on the ghost's color."""
         if self.color == "red":
             return player.current_pos
         elif self.color == "pink":
@@ -137,6 +144,7 @@ class Ghost:
     def get_escape_move(
         self, maze: Any, target_pos: tuple[int, int]
     ) -> tuple[int, int]:
+        """Choose the neighboring cell farthest from the target."""
         neighbors = self.get_neighbors(maze, self.current_pos)
 
         if not neighbors:

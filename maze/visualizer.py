@@ -220,13 +220,13 @@ class MazeViewer(GameMixin, ScreensMixin):
                                 ghost.is_eaten = False
                             continue
                         if (
-                            ghost.state == "Frightened"
+                            ghost.state == "scared"
                             and now - ghost.frightened_time
                             >= self.FRIGHTENED_DURATION
                         ):
                             ghost.state = "chase"
                         next_pos: tuple[int, int] | None = None
-                        if ghost.state == "Frightened":
+                        if ghost.state == "scared":
                             if self.cheat_mode.freeze:
                                 next_pos = ghost.current_pos
                             else:
@@ -622,7 +622,7 @@ class MazeViewer(GameMixin, ScreensMixin):
             center_x = origin_x + (render_pos.x + 0.5) * cell_size
             center_y = origin_y + (render_pos.y + 0.5) * cell_size
 
-            if ghost.state == "Frightened":
+            if ghost.state == "scared":
                 sprite = self.frightened_ghost
             elif color == "red":
                 sprite = self.red_ghost

@@ -3,6 +3,8 @@ from typing import Any
 
 
 class Loader:
+    """Load maze information and check cell connections."""
+
     DIRECTIONS = {
         "up": (0, -1, 1, 4),
         "right": (1, 0, 2, 8),
@@ -16,6 +18,8 @@ class Loader:
         self.width = len(self.maze[0])
 
     def open_wall(self, x: int, y: int, direction: str) -> bool:
+        """Check if movement to a neighboring cell is possible."""
+
         if not (0 <= x < self.width and 0 <= y < self.height):
             return False
         if direction not in self.DIRECTIONS:
@@ -38,9 +42,10 @@ class Loader:
             return True
 
     def get_maze_center(self) -> tuple:
+        """Find the nearest open cell to the center of the maze."""
+
         cx = len(self.maze[0]) // 2
         cy = len(self.maze) // 2
-
         if self.maze[cy][cx] != 15:
             return (cx, cy)
 

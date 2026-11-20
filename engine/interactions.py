@@ -8,12 +8,13 @@ from engine.ghost import Ghost
 
 
 class InteractionManager:
+    """Manage interactions between the player, pacgums, and ghosts."""
 
     def __init__(
         self,
         player: Player,
-        pacgums: Any,
-        super_pacgums: Any,
+        pacgums: set,
+        super_pacgums: list,
         sound_manager: Any = None,
     ) -> None:
         self.player = player
@@ -26,6 +27,8 @@ class InteractionManager:
             self.sound_manager.play(name)
 
     def check_pacgum(self, ghosts: Sequence[Ghost]) -> None:
+        """Check and handle pacgum and super pacgum collection."""
+
         if self.player.current_pos in self.pacgums:
             self.pacgums.discard(self.player.current_pos)
             self.player.add_score()
@@ -35,7 +38,7 @@ class InteractionManager:
             for ghost in ghosts:
                 if ghost.is_eaten:
                     continue
-                ghost.state = "Frightened"
+                ghost.state = "scared"
                 ghost.frightened_time = pygame.time.get_ticks()
             self.player.add_super_score()
             self._play("power_pellet")
@@ -45,6 +48,8 @@ class InteractionManager:
         ghosts: Sequence[Ghost],
         invincibility: bool
     ) -> bool:
+        """Handle collisions between the player and ghosts."""
+
         if invincibility:
             return False
         current_time = time.monotonic()

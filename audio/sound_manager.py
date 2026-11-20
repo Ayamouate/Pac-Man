@@ -62,7 +62,6 @@ class SoundManager:
                 sound.set_volume(self.SOUND_VOLUMES.get(name, 1.0))
                 self.sounds[name] = sound
             except (pygame.error, OSError, FileNotFoundError):
-                # A missing or unsupported asset should not stop the game.
                 continue
 
         try:

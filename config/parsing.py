@@ -1,7 +1,8 @@
 import json
 from json import JSONDecodeError
 from typing import Any
-
+import sys
+from pathlib import Path
 
 DEFAULTS = {
 
@@ -69,7 +70,13 @@ def keep_first_key(data: list[tuple[str, Any]]) -> dict[str, Any]:
 class config_file:
     """Read and validate the game's configuration file."""
     def __init__(self, file_name: str) -> None:
-        self.file = file_name
+        requested_path = Path(file_name)
+        if requested_path.is_file():
+            self.file = requested_path
+        elif getattr(sys, "frozen", False):
+            self.file = Path(sys._MEIPASS) / requested_path.name
+        else:
+            self.file = requested_path
 
     def read_file(self) -> dict:
         """Read the JSON file and return validated configuration settings."""

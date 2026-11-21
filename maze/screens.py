@@ -239,13 +239,10 @@ class ScreensMixin:
                 text = font.render(self.MAIN_MENU[i], True, (255, 215, 0))
             else:
                 text = font.render(self.MAIN_MENU[i], True, (255, 250, 205))
-            screen.blit(
-                text,
-                (
-                    cord[i][0] - text.get_width() // 2,
-                    cord[i][1] - text.get_height() // 2,
-                ),
-            )
+
+            text_x = cord[i][0] - text.get_width() // 2
+            text_y = cord[i][1] - text.get_height() // 2
+            screen.blit(text, (text_x, text_y))
 
         # signature message
         credit_font = pygame.font.SysFont("lora", 20)

@@ -12,7 +12,6 @@ decisions remain visible to both teammates.
 | `mezahir` | Configuration parser; player, ghosts, pac-gums, and scoring; ghost AI; gameplay rendering and HUD; menus and instructions; cheat mode |
 | `Both` | Repository/tooling setup; A-Maze-ing investigation and graphics-library choice; interfaces and decisions; project workspace and README; integration; error-handling pass; final project-management documentation |
 
-
 ## Responsibility matrix
 
 | Area | Primary owner | Shared responsibility |

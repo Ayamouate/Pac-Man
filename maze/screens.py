@@ -230,21 +230,16 @@ class ScreensMixin:
         image = pygame.transform.scale(
             self.menu_image, (size, size)
         )
-        rect = image.get_rect(
-            center=(round(center_x), round(center_y))
-        )
-        screen.blit(image, rect)
+        x = center_x - size // 2
+        y = center_y - size // 2
+        screen.blit(image, (x,y))
         for i in range(4):
             font = pygame.font.Font(None, 50)
             if i == self.selected:
                 text = font.render(self.MAIN_MENU[i], True, (255, 215, 0))
             else:
                 text = font.render(self.MAIN_MENU[i], True, (255, 250, 205))
-            text_rect = text.get_rect(
-                center=cord[i]
-
-            )
-            screen.blit(text, text_rect)
+            screen.blit(text, (cord[i][0] - text.get_width() //2, cord[i][1] - text.get_height() //2))
 
         # signature message
         credit_font = pygame.font.SysFont("lora", 20)

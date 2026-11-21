@@ -35,7 +35,6 @@ implementation.
 | A-Maze-ing adapter with `PERFECT=False`, internal maze model, and error handling | aymouate | 8h | Done |
 | Place the player in the middle, four ghosts, four corner super-pac-gums, and pac-gums | mezahir | 5h | Done |
 | Build the window and render loop; draw a stub maze, then the real maze | aymouate | 8h | Done |
-| Add arrows/WASD input and the menu/playing/pause/over/victory state-machine skeleton | aymouate | 6h | Done |
 
 **Outcome:** validated data can reach a visible game window and the generated
 maze can be used by the game shell.
@@ -44,11 +43,12 @@ maze can be used by the game shell.
 
 | Task | Owner | Estimate | Status |
 |---|---|---:|---|
+| Add arrows/WASD input and the menu/playing state-machine skeleton | aymouate | 6h | Done |
 | Player movement, wall collision, eating, and scoring | mezahir | 8h | Done |
 | Ghost AI: chase with BFS, flee, eaten state, and respawn timer | mezahir | 12h | Done |
 | Draw Pac-Man, normal/edible ghosts, pellets, and HUD for score, lives, level, and time | mezahir | 10h | Done |
 | Build the main menu and instructions screen | mezahir | 6h | Done |
-| Build and integrate the pause menu | aymouate | 2h | Done |
+| Build and integrate the pause menu | mezahir | 2h | Done |
 
 **Outcome:** the principal play cycle exists: move, collect, avoid or eat
 ghosts, score, and see the game state.
@@ -71,7 +71,7 @@ including normal completion and failure paths.
 | Task | Owner | Estimate | Status |
 |---|---|---:|---|
 | Error-handling pass for broken configs, missing files, and generator failure | Both | 6h | Done |
-| Package with PyInstaller or a similar tool, upload privately/unlisted to itch.io, and include in-package instructions | aymouate | 10h | Done |
+| Package with PyInstaller or a similar tool, upload privately/unlisted to itch.io, and include in-package instructions | Both | 10h | Done |
 | Make mypy/flake8 clean and complete docstrings and type hints | aymouate | 6h | Done |
 | Complete the README required sections and project-management documentation | Both | 8h | Done |
 

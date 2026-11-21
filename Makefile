@@ -29,13 +29,12 @@ clean:
 	find . -type d -name .mypy_cache -exec rm -rf {} +
 
 package:
-	$(PYTHON) -m PyInstaller --noconfirm --clean \
+	$(PYTHON) -m PyInstaller --noconfirm \
 		--name PacMan \
 		--onedir \
 		--windowed \
 		--add-data "assets:assets" \
 		--add-data "audio:audio" \
-		--add-data "config:config" \
 		--add-data "config.json:." \
 		$(MAIN)
 

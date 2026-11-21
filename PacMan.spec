@@ -5,7 +5,7 @@ a = Analysis(
     ['pac-man.py'],
     pathex=[],
     binaries=[],
-    datas=[('assets', 'assets'), ('audio', 'audio'), ('config', 'config'), ('config.json', '.')],
+    datas=[('assets', 'assets'), ('audio', 'audio'), ('config.json', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

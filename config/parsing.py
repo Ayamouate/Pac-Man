@@ -147,7 +147,8 @@ class config_file:
             print("Using default configuration.")
             return DEFAULTS
         except JSONDecodeError:
-            print("Using default configuration.1")
+            print("Invalid json format")
+            print("Using default configuration.")
             return DEFAULTS
         except OSError as error:
             print(f"Could not read config file : {error}")

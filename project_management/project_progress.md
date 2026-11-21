@@ -8,13 +8,8 @@ This status reflects the completed task board for the project:
 |---|---:|
 | Total tasks | 23 |
 | Done | 23 |
-| Estimated effort | 160h |
-| Estimated effort in done tasks | 160h |
 
-
-By task count, the board is 23/23 complete (100%). By estimate, it is
-160/160 hours complete (100%). These are board-derived indicators; they do
-not replace a test report or a time log.
+By task count, the board is 23/23 complete (100%).
 
 ## Completed work
 

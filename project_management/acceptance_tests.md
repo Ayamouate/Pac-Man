@@ -24,9 +24,9 @@ not a claim that every check has already been executed.
 | ID | Area | Check | Expected result | Owner |
 |---|---|---|---|---|
 | 01 | Installation | Run `make install` in the documented environment. | Required Python packages install or the documented dependency error is clear. | Both |
-| 02 | Launch | Run `make run` with `config.json`. | The game starts, loads the configured levels, and opens the menu/window. | Both | Ready to verify |
+| 02 | Launch | Run `make run` with `config.json`. | The game starts, loads the configured levels, and opens the menu/window. | Both |
 | 03 | CLI validation | Run the entry point with no argument and with a non-JSON argument. | The program rejects each invalid invocation with a clear error instead of starting with unknown input. | aymouate |
-| 04 | Configuration | Use a missing, empty, malformed, or non-object config file. | The game uses safe defaults and does not crash. | mezahir | Ready to verify |
+| 04 | Configuration | Use a missing, empty, malformed, or non-object config file. | The game uses safe defaults and does not crash. | mezahir |
 | 05 | Configuration | Use comments, mixed-case keys, unknown keys, wrong types, and invalid level dimensions. | Supported comments are ignored, keys are normalized as implemented, unknown keys are ignored, and invalid values are replaced safely. | mezahir |
 | 06 | Maze generation | Generate every configured level, including the 10-level progression. | Each maze has valid dimensions, uses the adapter, and renders in the game. | aymouate |
 | 07 | Generator failure | Force or simulate a generator failure. | The failure is reported clearly and does not become an unexplained traceback in normal error handling. | Both |

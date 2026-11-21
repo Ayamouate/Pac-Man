@@ -71,7 +71,7 @@ including normal completion and failure paths.
 | Task | Owner | Estimate | Status |
 |---|---|---:|---|
 | Error-handling pass for broken configs, missing files, and generator failure | Both | 6h | Done |
-| Package with PyInstaller or a similar tool, upload privately/unlisted to itch.io, and include in-package instructions | mezahir | 10h | Done |
+| Package with PyInstaller or a similar tool, upload privately/unlisted to itch.io, and include in-package instructions | aymouate | 10h | Done |
 | Make mypy/flake8 clean and complete docstrings and type hints | aymouate | 6h | Done |
 | Complete the README required sections and project-management documentation | Both | 8h | Done |
 
@@ -89,8 +89,8 @@ including normal completion and failure paths.
 
 | Person | Individual task hours | Share of shared tasks | Total |
 |---|---:|---:|---:|
-| `aymouate` | 64h | 16h | **80h** |
-| `mezahir` | 64h | 16h | **80h** |
+| `aymouate` | 74h | 16h | **90h** |
+| `mezahir` | 54h | 16h | **70h** |
 | **Project effort** | **128h** | **32h** | **160h** |
 
 

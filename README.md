@@ -16,7 +16,7 @@ The game includes a graphical interface with a main menu, instructions, pause me
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:Ayamouate/Pac-Man.git
 cd Pac-Man
 ```
 
@@ -39,6 +39,18 @@ Or launch it directly:
 ```bash
 python3 pac-man.py config.json
 ```
+
+### Packaging
+
+The Makefile also provides PyInstaller packaging commands:
+
+```bash
+make package  # creates dist/PacMan/
+make zip      # creates PacMan-linux.zip
+```
+
+The package includes the game assets, audio, configuration package, and
+configuration file required by the application.
 
 ## 3.How to Play :
 
@@ -75,11 +87,13 @@ Press **C** to open the Cheat Mode menu and access the following features:
 - **Complete Levels:** Collect all Pacgums before the time limit expires to progress to the next level.
 - **Earn High Scores:** Your score is recorded in the Highscore table, where you can compete for a place in the Top 10.
 
-The game ends when all lives are lost or the player successfully completes the configured level progression.
+The game ends when all lives are lost, the level timer expires, or the player
+successfully completes the configured level progression.
 
 ### Ghost Algorithm
 
-The ghost system is implemented in `ghost.py`. Each ghost uses AI logic to move through the maze and interact with Pac-Man.
+The ghost system is implemented in `engine/ghost.py`. Each ghost uses AI logic
+to move through the maze and interact with Pac-Man.
 
 #### `Ghost Personalities`
 
@@ -107,7 +121,9 @@ The ghost system handles different states:
 
 ### Game Coordination
 
-`GameManager` coordinates ghost updates and manages their interactions with the player. It handles state transitions, collisions, and the timing of ghost respawning.
+`MazeViewer` coordinates ghost updates and manages their interactions with the
+player through `InteractionManager`. It handles state transitions, collisions,
+and the timing of ghost respawning.
 
 ## 4.Configuration :
 
@@ -120,32 +136,42 @@ The `config.json` file follows this structure:
 
 ```json
 {
-    "highscore_filename": "highscores.json",
+    "highscore_filename": "highscore.json",
     "lives": 3,
-    "pacgum": 42,
+    "pacgum": 200,
     "points_per_pacgum": 10,
     "points_per_super_pacgum": 50,
     "points_per_ghost": 200,
-    "level_max_time": 90,
+    "seed": 42,
+    "level_max_time": 100,
     "levels": [
-        { "width": 15, "height": 15, "seed": 42 },
-        { "width": 19, "height": 21, "seed": 101 }
+        { "width": 15, "height": 15 },
+        { "width": 15, "height": 16 },
+        { "width": 17, "height": 17 },
+        { "width": 19, "height": 19 },
+        { "width": 21, "height": 19 },
+        { "width": 21, "height": 21 },
+        { "width": 23, "height": 21 },
+        { "width": 25, "height": 21 },
+        { "width": 27, "height": 23 },
+        { "width": 29, "height": 23 }
     ]
 }
 ```
 
 ### Configuration Parameters
 
-| Parameter | Description | Default Value |
+| Parameter | Description | Configured value (`config.json`) |
 |---|---|---|
-| `highscore_filename` | File used to store high scores. | `highscores.json` |
+| `highscore_filename` | File used to store high scores. | `highscore.json` |
 | `lives` | Initial number of player lives. | `3` |
-| `pacgum` | Number of regular Pacgums. | `42` |
+| `pacgum` | Number of regular Pacgums. | `200` |
 | `points_per_pacgum` | Points earned for collecting a regular Pacgum. | `10` |
 | `points_per_super_pacgum` | Points earned for collecting a Super Pacgum. | `50` |
 | `points_per_ghost` | Points earned for eating a frightened ghost. | `200` |
-| `level_max_time` | Maximum time allowed per level, in seconds. | `90` |
-| `levels` | List of maze configurations. | Defined in `config.json` |
+| `seed` | Main seed used to generate reproducible levels. | `42` |
+| `level_max_time` | Maximum time allowed per level, in seconds. | `100` |
+| `levels` | List of maze configurations. | 10 levels in `config.json` |
 
 ### Configuration Validation
 
@@ -155,13 +181,16 @@ The configuration is validated when the game starts.
 - Invalid values are rejected and replaced with safe defaults.
 - Missing or malformed configuration files are handled without crashing the game.
 - Unknown configuration keys are ignored.
-- Full-line comments beginning with `#` are supported.
+- Comments beginning with `#` or `//` are supported.
+- Configuration keys are case-insensitive.
 
 This validation ensures that the game can start safely even when the configuration file contains errors.
 
 ## 5. Highscore System :
 
-The game includes a persistent Top 10 highscore system that stores players' names and scores in `highscores.json`.
+The game includes a persistent Top 10 highscore system that stores players'
+names and scores in `highscore.json` by default. A custom path can be supplied
+through `highscore_filename` in the configuration.
 
 After a game ends, players can enter their names to save their scores. The leaderboard ranks entries from highest to lowest and keeps only the ten best scores.
 
@@ -175,7 +204,8 @@ The maze-generation process is:
 
 1. `main()` reads the configuration file using `config_file()` and retrieves the configured levels and seed.
 2. `generate_mazes()` iterates through the level definitions and generates one maze for each level.
-3. `generate_maze()` validates the dimensions of each level, ensuring that the width and height are integers and that the maze is at least 3×3.
+3. The configuration parser validates each level dimension, requiring integer
+   widths and heights between 10 and 30.
 4. The external `MazeGenerator` is initialized with the level dimensions, the corresponding seed, and `perfect=False`.
 5. Each level receives a reproducible seed calculated from the main seed and its level number.
 6. The generated maze is returned and passed to `MazeViewer`, which handles its visualization and gameplay integration.
@@ -247,7 +277,9 @@ contains maze generation, the game controller, screens, and persistence.
 ├── pac-man.py                         # Application entry point
 ├── config.json                        # Runtime configuration
 ├── highscore.json                     # Persistent high scores
-├── makefile                           # Install, run, lint, and clean commands
+├── Makefile                            # Install, run, package, lint, and clean commands
+├── requirements.txt                    # Python dependencies
+├── PacMan.spec                         # PyInstaller build specification
 ├── README.md                          # Project documentation
 ├── assets/                            # Images used by the Pygame interface
 │   ├── Bg.jpeg
@@ -273,9 +305,8 @@ contains maze generation, the game controller, screens, and persistence.
 │   ├── visualizer.py                   # Main Pygame controller and game loop
 │   ├── game_logic.py                   # Input, states, timer, and level changes
 │   ├── screens.py                      # Menu and screen rendering
-│   ├── highscore.py                    # Validated top-10 score storage
-│   └── animated_background.py          # Animated background effects
-├── mazegenerator-00001-py3-none-any/  # Bundled MazeGenerator package
+│   └── highscore.py                    # Validated top-10 score storage
+├── mazegenerator-2.0.2-py3-none-any.whl # MazeGenerator dependency
 └── project_management/                # Planning and delivery documents
 ```
 
@@ -288,7 +319,9 @@ contains maze generation, the game controller, screens, and persistence.
 | `pac-man.py` | Validates the command-line argument, loads the configuration, generates all mazes, creates `MazeViewer`, and starts the application. |
 | `config.json` | Defines the default run settings: lives, scoring, seed, time limit, high-score file, and level dimensions. |
 | `highscore.json` | Stores the persistent high-score entries written by `HighscoreManager`. |
-| `makefile` | Provides `install`, `run`, `debug`, `clean`, and `lint` commands. |
+| `Makefile` | Provides `install`, `run`, `debug`, `package`, `zip`, `clean`, and `lint` commands. |
+| `requirements.txt` | Lists Pygame, linting/type-checking tools, PyInstaller, and the local maze-generator wheel. |
+| `PacMan.spec` | Describes the PyInstaller data files and executable settings. |
 | `README.md` | Describes installation, gameplay, architecture, and project organization. |
 
 ### `config/`
@@ -314,13 +347,12 @@ contains maze generation, the game controller, screens, and persistence.
 | File | Responsibility |
 |---|---|
 | `maze/__init__.py` | Exposes the maze-generation helpers as package functions. |
-| `maze/maze.py` | Validates level sizes and creates one reproducible maze per configured level using `MazeGenerator`. |
+| `maze/maze.py` | Creates one reproducible maze per configured level using `MazeGenerator` and reports generation errors. |
 | `maze/maze_loader.py` | Interprets the generator's wall bit flags and prevents movement through walls or outside the maze. |
 | `maze/visualizer.py` | Defines `MazeViewer`, the central controller responsible for Pygame setup, the 60 FPS loop, entity updates, rendering, audio, and screen selection. |
 | `maze/game_logic.py` | Defines `GameMixin`, which handles keyboard input, menu actions, pause/resume, timers, game resets, level changes, name entry, and cheat controls. |
 | `maze/screens.py` | Defines `ScreensMixin`, which draws the menu, instructions, pause, gameplay HUD, highscores, name-entry, game-over, and victory screens. |
 | `maze/highscore.py` | Validates player names and scores, keeps the highest ten entries, and saves them safely as JSON. |
-| `maze/animated_background.py` | Adds the moving petal/wind effect to the background image. |
 
 ### `audio/`, assets, and bundled dependencies
 
@@ -330,8 +362,7 @@ contains maze generation, the game controller, screens, and persistence.
 | `audio/sound_manager.py` | Loads music and sound effects, handles playback, pause/resume, muting, and missing-audio fallbacks. |
 | `audio/music/` and `audio/sounds/` | Contain the bundled WAV files used by menus and gameplay events. |
 | `assets/` | Contains the background, maze walls, player, ghosts, collectibles, HUD, and screen artwork loaded by `MazeViewer`. |
-| `mazegenerator-00001-py3-none-any/mazegenerator/` | Contains the assigned `MazeGenerator` implementation used to produce seeded mazes. |
-| `mazegenerator-00001-py3-none-any/*.dist-info/` | Contains package metadata for the bundled generator. |
+| `mazegenerator-2.0.2-py3-none-any.whl` | Local wheel installed by `make install`; it provides the assigned `MazeGenerator` implementation. |
 | `project_management/` | Contains team organization, timeline, progress, risk analysis, and acceptance-test documents. |
 
 ## 11. Main Game State Flow

@@ -38,11 +38,3 @@ not replace a test report or a time log.
 - README and project-management documentation;
 - buffer time for bugs, balance, sounds, animations, and general polish.
 
-## Completion result
-
-All tasks on the board are complete. The project has a documented development
-process, a modular playable implementation, error handling, quality checks,
-packaging preparation, and project documentation. The acceptance criteria in
-[acceptance_tests.md](acceptance_tests.md) describe the evidence used to
-validate the completed release.
-

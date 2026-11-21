@@ -90,6 +90,8 @@ class SoundManager:
             pass
 
     def pause_music(self) -> None:
+        """Pauses the background music."""
+
         if not self.enabled or not self.music_available:
             return
         try:
@@ -110,6 +112,8 @@ class SoundManager:
         return self.music_muted
 
     def stop_music(self) -> None:
+        """Completely stops the background music."""
+
         if not self.music_available:
             return
         try:
@@ -121,6 +125,7 @@ class SoundManager:
             pass
 
     def play(self, name: str) -> None:
+        """Responsible for playing individual sound effects."""
 
         if not self.enabled or not self.available:
             return

@@ -24,7 +24,7 @@ decisions remain visible to both teammates.
 | Rendering, menus, and state transitions | Both | Keep visual states and gameplay states consistent |
 | Highscores and name validation | aymouate | Test persistence with malformed files |
 | Cheat mode | mezahir | Verify that it remains useful for testing without breaking normal play |
-| Packaging and upload | aymouate | Both perform a clean-install or regenerated-package check |
+| Packaging and upload | Both | Both perform a clean-install or regenerated-package check |
 | Documentation and reproducibility | Both | Each teammate must be able to explain and reproduce the project |
 
 ## Collaboration rules

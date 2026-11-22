@@ -233,6 +233,7 @@ class GameMixin:
             self.cheat_mode.level_skip = False
 
     def _reset_game(self) -> None:
+        """"""
         self._change_level(0)
         self.cheat_mode.active = False
         self._reset_cheat_modes()

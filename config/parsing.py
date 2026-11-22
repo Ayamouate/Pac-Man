@@ -74,7 +74,7 @@ class config_file:
         if requested_path.is_file():
             self.file = requested_path
         elif getattr(sys, "frozen", False):
-            self.file = Path(sys._MEIPASS) / requested_path.name
+            self.file = Path(getattr(sys, "_MEIPASS")) / requested_path.name
         else:
             self.file = requested_path
 

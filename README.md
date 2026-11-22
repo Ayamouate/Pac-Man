@@ -412,28 +412,6 @@ state = playing, game_state = playing
   └─ Repeat at up to 60 frames per second
 ```
 
-The important transitions are:
-
-| Current state | Event | Next state or action |
-|---|---|---|
-| `playing` | `P` or `Esc` | Set `game_state = pause`; stop gameplay updates until resumed. |
-| `pause` | `1` | Resume `game_state = playing`. |
-| `pause` | `2` | Reset to the first level and return to `menu`. |
-| `playing` | Timer expires | Set `state = over` with a time-out reason. |
-| `playing` | Lives reach zero | Set `state = over` with a life-loss reason. |
-| `playing` | All Pacgums are collected | Load the next maze, or set `state = victory` after the final level. |
-| `over` / `victory` | `Enter` when a score can be recorded | Set `state = name_entry`. |
-| `name_entry` | Confirm a name | Save the score and set `state = highscores`. |
-| `over` | `Enter` or `Esc` without name entry | Reset the game and return to `menu`. |
-| `victory` | `Enter` without name entry | Reset and start a new game. |
-| `victory` | `Esc` | Reset the game and return to `menu`. |
-| `highscores` / `instructions` | `Enter`, `Esc`, `Backspace`, or `Q` | Return to `menu`. |
-
-At the end of each level, the player and ghosts are repositioned, a fresh set
-of collectibles is created, and the level timer is restarted. During the main
-loop, `InteractionManager` connects entity updates to the resulting score,
-sound effects, frightened ghosts, lost lives, and end-screen transitions.
-
 ## 12. Project Management :
 
 Project planning and delivery documentation is available in the

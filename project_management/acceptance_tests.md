@@ -21,43 +21,30 @@ not a claim that every check has already been executed.
 
 ## Functional acceptance cases
 
-| ID | Area | Check | Expected result | Owner |
-|---|---|---|---|---|
-| 01 | Installation | Run `make install` in the documented environment. | Required Python packages install or the documented dependency error is clear. | Both |
-| 02 | Launch | Run `make run` with `config.json`. | The game starts, loads the configured levels, and opens the menu/window. | Both |
-| 03 | CLI validation | Run the entry point with no argument and with a non-JSON argument. | The program rejects each invalid invocation with a clear error instead of starting with unknown input. | aymouate |
-| 04 | Configuration | Use a missing, empty, malformed, or non-object config file. | The game uses safe defaults and does not crash. | mezahir |
-| 05 | Configuration | Use comments, mixed-case keys, unknown keys, wrong types, and invalid level dimensions. | Supported comments are ignored, keys are normalized as implemented, unknown keys are ignored, and invalid values are replaced safely. | mezahir |
-| 06 | Maze generation | Generate every configured level, including the 10-level progression. | Each maze has valid dimensions, uses the adapter, and renders in the game. | aymouate |
-| 07 | Generator failure | Force or simulate a generator failure. | The failure is reported clearly and does not become an unexplained traceback in normal error handling. | Both |
-| 08 | Movement | Move with arrow keys and WASD in all four directions. | Pac-Man responds to both control schemes and cannot cross a closed wall or leave the maze. | mezahir |
-| 09 | Collectibles | Collect regular and super pac-gums. | The item disappears, the correct score is added, and a super pac-gum makes active ghosts frightened. | mezahir |
-| 10 | Ghost chase | Play with normal ghosts active. | Ghosts use maze paths and pursue according to their target behavior without moving through closed walls. | mezahir |
-| 11 | Ghost frightened/eaten | Collect a super pac-gum and collide with a frightened ghost. | The ghost is treated as eaten, returns/respawns correctly, and the player receives ghost points. | mezahir |
-| 12 | Player collision | Collide with a normal ghost. | One life is lost, the player respawns at the start position, ghosts reset as designed, and temporary protection applies. | Both |
-| 13 | Timer and pause | Pause and resume during a level, then allow the timer to expire. | Gameplay stops while paused, resumes correctly, and expiry leads to the documented end/progression behavior. | aymouate |
-| 14 | Level progression | Clear a level and continue through the configured levels. | The next level loads with its maze/entities reset; completing the final level shows victory. | aymouate |
-| 15 | Game over | Lose all lives. | The game-over screen appears and offers the documented next actions. | aymouate |
-| 16 | Menus | Navigate main menu, instructions, pause, highscores, and end screens. | Selection, back/escape, quit, and return actions lead to the correct state without freezing the loop. | Both |
-| 17 | Name entry | Enter empty, overlong, non-alphanumeric, and valid names. | Empty input uses the fallback behavior; invalid characters/length are rejected; valid names are normalized and saved. | aymouate |
-| 18 | Highscores | Load valid, malformed, oversized, and missing highscore files, then record a score. | Invalid entries are ignored safely, scores sort high-to-low, and only the top ten remain. | aymouate |
-| 19 | Cheat mode | Toggle cheat mode and use freeze, infinite lives, invincibility, and next-level controls. | Each control changes only its intended behavior and the on-screen indicator reflects the active mode. | mezahir |
-| 20 | Audio/assets | Launch with all repository assets and audio present. | Required media loads and gameplay/menu sound effects do not prevent startup. | Both |
-| 21 | Quality | Run `make lint`. | flake8 and mypy complete without errors under the documented environment. | aymouate |
-| 22 | Package | Build the PyInstaller-or-similar package and launch it from a clean location. | The package runs without relying on the repository's current working directory or undeclared files. | aymouate |
-
-## Exploratory checks
-
-These checks are useful after the functional cases pass:
-
-- try the smallest supported maze dimensions and the largest configured level;
-- play with no remaining regular pac-gums and with all four super pac-gums;
-- pause at the edge of a timer expiry and resume;
-- quit and restart after a highscore write;
-- run the game from a directory other than the repository root;
-- repeat a level reset several times to look for stale entities or score state;
-- use cheat mode to reach later levels, then disable it before normal play;
-- regenerate levels with the same seed and confirm the intended reproducibility.
+| ID | Area | Check | Expected result |
+|---|---|---|---|
+| 01 | Installation | Run `make install` in the documented environment. | Required Python packages install or the documented dependency error is clear. |
+| 02 | Launch | Run `make run` with `config.json`. | The game starts, loads the configured levels, and opens the menu/window. |
+| 03 | CLI validation | Run the entry point with no argument and with a non-JSON argument. | The program rejects each invalid invocation with a clear error instead of starting with unknown input. |
+| 04 | Configuration | Use a missing, empty, malformed, or non-object config file. | The game uses safe defaults and does not crash. |
+| 05 | Configuration | Use comments, mixed-case keys, unknown keys, wrong types, and invalid level dimensions. | Supported comments are ignored, keys are normalized as implemented, unknown keys are ignored, and invalid values are replaced safely. |
+| 06 | Maze generation | Generate every configured level, including the 10-level progression. | Each maze has valid dimensions, uses the adapter, and renders in the game. |
+| 07 | Generator failure | Force or simulate a generator failure. | The failure is reported clearly and does not become an unexplained traceback in normal error handling. |
+| 08 | Movement | Move with arrow keys and WASD in all four directions. | Pac-Man responds to both control schemes and cannot cross a closed wall or leave the maze. |
+| 09 | Collectibles | Collect regular and super pac-gums. | The item disappears, the correct score is added, and a super pac-gum makes active ghosts frightened. |
+| 10 | Ghost chase | Play with normal ghosts active. | Ghosts use maze paths and pursue according to their target behavior without moving through closed walls. |
+| 11 | Ghost frightened/eaten | Collect a super pac-gum and collide with a frightened ghost. | The ghost is treated as eaten, returns/respawns correctly, and the player receives ghost points. |
+| 12 | Player collision | Collide with a normal ghost. | One life is lost, the player respawns at the start position, ghosts reset as designed, and temporary protection applies. |
+| 13 | Timer and pause | Pause and resume during a level, then allow the timer to expire. | Gameplay stops while paused, resumes correctly, and expiry leads to the documented end/progression behavior. |
+| 14 | Level progression | Clear a level and continue through the configured levels. | The next level loads with its maze/entities reset; completing the final level shows victory. |
+| 15 | Game over | Lose all lives. | The game-over screen appears and offers the documented next actions. |
+| 16 | Menus | Navigate main menu, instructions, pause, highscores, and end screens. | Selection, back/escape, quit, and return actions lead to the correct state without freezing the loop. |
+| 17 | Name entry | Enter empty, overlong, non-alphanumeric, and valid names. | Empty input uses the fallback behavior; invalid characters/length are rejected; valid names are normalized and saved. |
+| 18 | Highscores | Load valid, malformed, oversized, and missing highscore files, then record a score. | Invalid entries are ignored safely, scores sort high-to-low, and only the top ten remain. |
+| 19 | Cheat mode | Toggle cheat mode and use freeze, infinite lives, invincibility, and next-level controls. | Each control changes only its intended behavior and the on-screen indicator reflects the active mode. |
+| 20 | Audio/assets | Launch with all repository assets and audio present. | Required media loads and gameplay/menu sound effects do not prevent startup. |
+| 21 | Quality | Run `make lint`. | flake8 and mypy complete without errors under the documented environment. |
+| 22 | Package | Build the PyInstaller-or-similar package and launch it from a clean location. | The package runs without relying on the repository's current working directory or undeclared files. |
 
 ## Evidence checklist
 
@@ -72,4 +59,3 @@ For the completed delivery record, collect:
   corruption;
 - the final private/unlisted upload location, if the project submission
   requires it.
-

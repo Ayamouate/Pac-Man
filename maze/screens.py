@@ -276,8 +276,6 @@ class ScreensMixin:
         body_font = pygame.font.SysFont("dejavusans", 25, bold=True)
         hint_font = pygame.font.SysFont("lora", 24)
 
-        # Reload when the page is opened so scores written by another process
-        # are visible without restarting the game.
         entries = self.highscore_manager.load()
 
         heading_y = panel_rect.top + 75

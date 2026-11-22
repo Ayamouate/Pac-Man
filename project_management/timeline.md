@@ -12,7 +12,7 @@ weeks, not calendar dates.
 | 2 | Core gameplay, AI, rendering, menus |
 | 3 | Progression, highscores, end states, cheat mode, integration |
 | 4 | Robustness, packaging, quality, documentation |
-| 5 | Buffer and polish |
+| 5 | Bugs, balance|
 
 ## Week 0 — foundation
 
@@ -80,6 +80,6 @@ including normal completion and failure paths.
 
 | Task | Owner |
 |---|---|
-| Buffer for bugs, balance, and polish such as sounds and animations if time allows | aymouate |
+| Bugs, balance, and polish such as sounds and animations if time allows | aymouate |
 
 **Outcome:** reserve time absorbs late defects and supports final polish.

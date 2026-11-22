@@ -222,6 +222,7 @@ class MazeViewer(GameMixin, ScreensMixin):
                             if now - ghost.eaten_time >= self.EATEN_TIME:
                                 ghost.state = "chase"
                                 ghost.current_pos = ghost.spawn_pos
+                                ghost.previous_pos = None
                                 self.ghost_render_positions[index] = (
                                     pygame.Vector2(ghost.spawn_pos)
                                 )
@@ -241,8 +242,6 @@ class MazeViewer(GameMixin, ScreensMixin):
                                 next_pos = ghost.get_escape_move(
                                     maze, self.player.current_pos
                                 )
-                                ghost.previous_pos = ghost.current_pos
-                                ghost.current_pos = next_pos
                         else:
                             if self.cheat_mode.freeze:
                                 next_pos = ghost.current_pos
@@ -252,6 +251,8 @@ class MazeViewer(GameMixin, ScreensMixin):
                                 )
                                 next_pos = ghost.move(maze, target)
                         if next_pos is not None:
+                            if next_pos != ghost.current_pos:
+                                ghost.previous_pos = ghost.current_pos
                             ghost.current_pos = next_pos
                     last_ghost_move = now
                     ghost_moved = True
@@ -368,16 +369,21 @@ class MazeViewer(GameMixin, ScreensMixin):
     def _draw(
         self, pygame: Any, screen: Any
     ) -> None:
+        """It coordinates the drawing of all the gameplay elements."""
+
         self._draw_background(screen)
+        # Retrieve the current maze
         maze = self._mazes[self._level_index]
         level = self._levels[self._level_index]
         width = level["width"]
         height = level["height"]
+
         cell_size, origin_x, origin_y = self._layout(width, height)
 
         self._draw_cells(
             pygame, screen, maze, cell_size, origin_x, origin_y, width, height
         )
+
         size = int(cell_size * 0.3)
         size_super = int(cell_size * 0.7)
         image = pygame.transform.scale(self.pacgums_image, (size, size))
@@ -407,6 +413,8 @@ class MazeViewer(GameMixin, ScreensMixin):
             self._draw_cheat_mode_menu(screen, pygame)
 
     def _layout(self, width: int, height: int) -> tuple[int, int, int]:
+        """Responsible for adapting the maze to the game window"""
+
         window_width, window_height = self.WINDOW_SIZE
         available_width = window_width - 2 * self.PADDING
         available_height = (
@@ -434,6 +442,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         width: int,
         height: int,
     ) -> None:
+
         for y in range(height):
             for x in range(width):
                 left = origin_x + x * cell_size

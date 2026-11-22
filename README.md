@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by `aymouate`,`mezahir`.*
+*This project has been created as part of the 42 curriculum by `aymouate`, `mezahir`.*
 
 ## 1. Description:
 
@@ -66,6 +66,7 @@ Navigate Pac-Man(Maomao) through the maze, collect all the Pacgums, and avoid be
 | P / ESC | Open the pause menu |
 | 1 (pause menu) | Resume the current game |
 | 2 (pause menu) | Return to the main menu |
+| M | Toggle music |
 | Q | Return to the main menu / exit from the menu |
 
 ### Cheat Mode
@@ -110,14 +111,14 @@ Each ghost has a distinct personality and targeting strategy in **CHASE** mode:
 
 Ghosts use **Breadth-First Search (BFS)** to find paths through the maze. Their movement behavior depends on their current state and the game situation.
 
-#### `Ghost States`
+#### `Ghost States and Transitions`
 
-The ghost system handles different states:
+The implementation uses `chase` and `scared` states, plus an `is_eaten` flag:
 
 - **Chase:** Ghosts follow paths toward their individual targets.
-- **Flee:** When Pac-Man collects a Super Pacgum, ghosts become vulnerable and try to escape.
-- **Eaten:** When Pac-Man catches a vulnerable ghost, it enters an eaten state.
-- **Respawn:** After being eaten, the ghost returns to the game after a respawn delay.
+- **Scared:** When Pac-Man collects a Super Pacgum, ghosts become vulnerable and try to escape.
+- **Eaten (`is_eaten`):** When Pac-Man catches a scared ghost, the flag is set and the ghost is temporarily removed from play.
+- **Return to play:** After the eaten delay, the ghost returns to its spawn position and its state is set back to `chase`.
 
 ### Game Coordination
 
@@ -279,7 +280,6 @@ contains maze generation, the game controller, screens, and persistence.
 ├── highscore.json                     # Persistent high scores
 ├── Makefile                            # Install, run, package, lint, and clean commands
 ├── requirements.txt                    # Python dependencies
-├── PacMan.spec                         # PyInstaller build specification
 ├── README.md                          # Project documentation
 ├── assets/                            # Images used by the Pygame interface
 │   ├── Bg.jpeg
@@ -306,7 +306,7 @@ contains maze generation, the game controller, screens, and persistence.
 │   ├── game_logic.py                   # Input, states, timer, and level changes
 │   ├── screens.py                      # Menu and screen rendering
 │   └── highscore.py                    # Validated top-10 score storage
-├── mazegenerator-2.0.2-py3-none-any.whl # MazeGenerator dependency
+├── mazegenerator-2.1.0-py3-none-any.whl # MazeGenerator dependency
 └── project_management/                # Planning and delivery documents
 ```
 

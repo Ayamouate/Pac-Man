@@ -50,13 +50,18 @@ class Ghost:
         return neighbors
 
     def shortest_path(
-        self, maze: Any, target_pos: tuple[int, int]
+        self,
+        maze: Any,
+        target_pos: tuple[int, int],
+        avoid_first_step: tuple[int, int] | None = None,
     ) -> list[tuple[int, int]]:
-        """Find the shortest path to a target using BFS."""
-        queue = deque([self.current_pos])
-        visited = {self.current_pos}
+        """Find a shortest path, optionally avoiding its first step."""
+
+        start = self.current_pos
+        queue = deque([start])
+        visited = {start}
         parent: dict[tuple[int, int], tuple[int, int] | None] = {
-            self.current_pos: None
+            start: None
         }
         while queue:
             current = queue.popleft()
@@ -64,6 +69,11 @@ class Ghost:
                 break
             neighbors = self.get_neighbors(maze, current)
             for neighbor in neighbors:
+                if (
+                    current == start
+                    and neighbor == avoid_first_step
+                ):
+                    continue
                 if neighbor in visited:
                     continue
                 visited.add(neighbor)
@@ -87,7 +97,11 @@ class Ghost:
         self, maze: Any, target_pos: tuple[int, int]
     ) -> tuple[int, int] | None:
         """Get the next position along the shortest path."""
-        path = self.shortest_path(maze, target_pos)
+        path = self.shortest_path(
+            maze, target_pos, avoid_first_step=self.previous_pos
+        )
+        if len(path) < 2 and self.previous_pos is not None:
+            path = self.shortest_path(maze, target_pos)
         if len(path) >= 2:
             next_direction = path[1]
             return next_direction

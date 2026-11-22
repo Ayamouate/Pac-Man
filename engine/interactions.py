@@ -66,11 +66,13 @@ class InteractionManager:
                     self.player.lose_life(current_time)
                     for ghost in ghosts:
                         ghost.current_pos = ghost.spawn_pos
+                        ghost.previous_pos = None
                     self._play("death")
                     return True
             ghost.is_eaten = True
             ghost.eaten_time = pygame.time.get_ticks()
             ghost.current_pos = ghost.spawn_pos
+            ghost.previous_pos = None
             self.player.add_ghost_score()
             self._play("ghost_eaten")
         return False

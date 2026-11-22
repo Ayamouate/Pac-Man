@@ -38,6 +38,6 @@ class Pacgums():
         if len(available_cells) >= self.number:
             number = self.number
         else:
-            number = self.pacgum
+            number = min(self.pacgum, len(available_cells))
         self.pacgums = set(random.sample(available_cells, number))
         return self.pacgums

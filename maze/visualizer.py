@@ -9,6 +9,7 @@ from engine.player import Player
 from maze.highscore import HighscoreManager
 from maze.game_logic import GameMixin
 from maze.screens import ScreensMixin
+from maze.animated_background import AnimatedBackground
 from engine.ghost import Ghost
 from engine.cheat_mode import CheatMode
 from audio.sound_manager import SoundManager
@@ -74,6 +75,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.frightened_ghost: Any = None
         self.super_pacgums_image: Any = None
         self.background: Any = None
+        self.animated_background: AnimatedBackground | None = None
         self.wall_h: Any = None
         self.wall_v: Any = None
         self.hud: Any = None
@@ -160,6 +162,9 @@ class MazeViewer(GameMixin, ScreensMixin):
         self.pacgums_image = self.load_image(pygame, "pacgum.png")
         self.super_pacgums_image = self.load_image(
             pygame, "super_pacgum.png"
+        )
+        self.animated_background = AnimatedBackground(
+            pygame, self.background, particle_image=self.pacgums_image
         )
         self.life_icon = self.load_image(pygame, "life_icon.png")
         self.frightened_ghost = self.load_image(pygame, "edible.png")
@@ -416,7 +421,7 @@ class MazeViewer(GameMixin, ScreensMixin):
         """Responsible for adapting the maze to the game window"""
 
         window_width, window_height = self.WINDOW_SIZE
-        available_width = window_width - 2 * self.PADDING
+        available_width = window_width - self.PADDING
         available_height = (
             window_height - self.HEADER_HEIGHT - 2 * self.PADDING
         )

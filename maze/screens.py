@@ -11,6 +11,7 @@ class ScreensMixin:
     MAIN_MENU: list[str]
     MENU_TEXT: tuple[int, int, int]
     background: Any
+    animated_background: Any
     instruction_image: Any
     pause_menu: Any
     game_over_image: Any
@@ -26,7 +27,10 @@ class ScreensMixin:
     name_entry_pending: bool
 
     def _draw_background(self, screen: Any) -> None:
-        screen.blit(self.background, (0, 0))
+        if self.animated_background is not None:
+            self.animated_background.draw(screen)
+        else:
+            screen.blit(self.background, (0, 0))
 
     def _instructions(self, pygame: Any, screen: Any) -> None:
         self._draw_background(screen)
@@ -116,8 +120,6 @@ class ScreensMixin:
         )
         screen.blit(image, rect)
 
-        # The artwork includes its own old instruction text. Cover that area
-        # so the instruction matches the current name-entry flow.
         artwork_fill = (47, 24, 23)
         message_area = pygame.Rect(rect.left + 155, rect.top + 65, 590, 88)
         pygame.draw.rect(screen, artwork_fill, message_area)
@@ -153,9 +155,6 @@ class ScreensMixin:
         surface.fill((25, 14, 20, 150))
         screen.blit(surface, (0, 0))
 
-        # Keep the victory screen in the same Sakura-styled visual language as
-        # the highscores and name-entry screens instead of introducing a
-        # one-off flat panel.
         panel = pygame.transform.smoothscale(
             self.highscore_panel, (820, 680)
         )

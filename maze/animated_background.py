@@ -17,8 +17,8 @@ class AnimatedBackground:
     """
 
     # Blossom detection
-    SCAN_STEP = 4            
-    CANOPY_MAX_Y = 0.54     
+    SCAN_STEP = 4
+    CANOPY_MAX_Y = 0.54
     PETAL_COUNT = 70
 
     def __init__(
